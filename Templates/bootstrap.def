@@ -1,0 +1,16 @@
+BootStrap: docker
+From: ubuntu:16.04
+IncludeCmd: yes
+
+%post
+        sed -i 's/main/main restricted universe/g' /etc/apt/sources.list
+        apt-get update
+        apt-get install -y bash git wget build-essential gcc time libc6-dev libgcc-5-dev python
+        apt-get install -y libopenmpi-dev openmpi-common openmpi-bin openmpi-doc dapl2-utils libdapl-dev libdapl2 libibverbs1 libibverbs-dev librdmacm1 libcxgb3-1 libipathverbs1 libmlx4-1 libmlx5-1 libmthca1 libnes1 libpmi0 libpmi0-dev libslurm29 libslurm-dev libsysfs2 libsysfs-dev
+
+        cd /tmp
+        # Install ring
+        wget https://raw.githubusercontent.com/open-mpi/ompi/master/examples/ring_c.c
+        mpicc ring_c.c -o /usr/bin/ring
+
+        mkdir -p /scratch /tmp /home /opt/cesga /mnt
