@@ -1,0 +1,310 @@
+\documentclass[a4paper]{article}
+
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage[colorinlistoftodos]{todonotes}
+\usepackage{nameref}
+\usepackage{pifont}
+\usepackage{hyperref}
+\usepackage{listings}
+\lstset{basicstyle=\ttfamily,
+  showstringspaces=false,
+  commentstyle=\color{red},
+  keywordstyle=\color{blue}
+}
+\usepackage{fourier}
+\usepackage{amssymb}% http://ctan.org/pkg/amssymb
+\newcommand{\cmark}{\ding{51}}%
+\newcommand{\xmark}{\ding{55}}%
+
+\title{MPI interversion compability with Singularity containers over Finis Terrae II using an Infiniband network}
+
+\author{Manuel Simon Novoa}
+
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Enter a short summary here. What topic do you want to investigate and why? What experiment did you perform? What were your main results and conclusion?
+\end{abstract}
+
+\section{Introduction 5 lines to max 1/2 page}
+\label{sec:introduction}
+
+Víctor says: Hola!
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce mattis mauris nec neque lacinia mattis. Mauris tincidunt sapien quis tortor malesuada ullamcorper. Curabitur quis mauris sed odio viverra facilisis vel a nibh. Proin et vehicula est. In dictum blandit odio sit amet laoreet. Integer blandit purus id dolor sollicitudin tempor. Praesent turpis erat, aliquet ac tellus nec, iaculis laoreet augue. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut malesuada magna velit, non varius dui lacinia ut. Nulla facilisi. Nulla vulputate malesuada nisl. Mauris mauris est, consequat id condimentum nec, viverra quis est. Curabitur fermentum, sem sed lacinia auctor, nisi tellus interdum tellus, a suscipit libero libero a nulla. Praesent eu felis volutpat, viverra metus sit amet, viverra purus. In volutpat porttitor velit vel efficitur.
+
+In a auctor ligula. Proin finibus quam a nisl molestie malesuada. Donec a enim purus. Mauris vel nisl ultrices, fringilla diam nec, volutpat tortor. Fusce malesuada, nisi egestas lobortis malesuada, nibh odio faucibus nulla, quis porttitor ligula ante et mauris. Nullam sed nisl interdum, fermentum turpis ut, dapibus orci. Maecenas venenatis arcu mauris, ut ultrices sapien venenatis vitae. Fusce semper sed tellus in commodo. In ornare erat vitae tincidunt euismod. Vestibulum nisi ex, fringilla sit amet dictum vel, venenatis feugiat tellus. Pellentesque eu nibh faucibus, posuere magna ac, volutpat sem.
+
+Mauris ut lobortis odio, sed hendrerit nulla. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas lacinia ac leo ac placerat. In fringilla dolor vel ipsum rutrum, at finibus libero posuere. Integer eu varius elit. Aliquam erat volutpat. Nulla sed risus libero. Aliquam elementum eleifend sapien eu tristique.  \cite{nano3}.
+
+\section{Used technologies: what, why and how}
+\label{sec:technologies}
+
+TODO: writte a previous intro
+
+\subsection{A brief introduction to Singularity}
+Lorem ipsum
+
+\subsection{Variables of the development environment}
+How the containers will be done? Why? Tests...
+\paragraph{Open MPI}
+Selected versions... why $\rightarrow$ FT2
+\paragraph{Intel MPI}
+Same...
+
+\subsection{Research of the development environment}
+Bootstrap files and its creation. Short intro and raised possibilities.
+\paragraph{Using the default version included in different Linux distributions}
+Trying ubuntu, debian and red hat distros. Using policy command.
+\paragraph{Installing different OpenMPI versions on Ubuntu 16.10 containers}
+How is the software installed?
+Bootstrap files and scripts for its creation (automation)
+
+\subsection{Final containers creation proccess}
+Example of a bootstrap definition file
+
+\section{Study environment: availabilities and limitations}
+\label{sec:environment}
+something...
+\subsection{What's the 'objetos de estudio'}
+
+\begin{table}[h]
+\centering
+\caption{My caption}
+\label{my-label}
+\begin{tabular}{|r|c|c|c|c|c|}
+\hline
+\multicolumn{1}{|c|}{Container OpenMPI version} & \multicolumn{5}{c|}{FT2 OpenMPI version} \\ \hline
+\multicolumn{1}{|c|}{} & 1.10.2 & 2.0.0 & 2.0.1 & 2.0.2 & 2.1.1 \\ \hline
+1.10.2 &  &  &  &  &  \\ \hline
+2.0.0 &  &  &  &  &  \\ \hline
+2.0.1 &  &  &  &  &  \\ \hline
+2.0.2 &  &  &  &  &  \\ \hline
+2.1.1 &  &  &  &  & \\ \hline
+\end{tabular}
+\end{table}
+
+
+\subsection{Available compilers}
+gnu, intel...
+\begin{figure}[h]
+\centering\includegraphics[width=0.6\linewidth]{cubo-pruebas-sin-nombre-final}
+\caption{Figure caption}
+\end{figure}
+\begin{figure}[h]
+\centering\includegraphics[width=0.6\linewidth]{desglose-cubo}
+\caption{Figure caption}
+\end{figure}
+
+\section{Approaches of the problem and development}
+\label{sec:approach}
+Reference to \nameref{sec:mixing} \newline
+Reference to \nameref{sec:linking}
+
+\section{Mixing MPI versions}
+\label{sec:mixing}
+\paragraph{Trying 'by default'}
+\subparagraph{Test apps: ring, hellowo}
+hellowo fue empleado en las de compilador intel
+
+\subsection{mpi run}
+\begin{table}[H]
+\centering
+\caption{mpirun mixing different compilers, 1 and 2 nodes}
+\label{my-label}
+\begin{tabular}{|r|c|c|c|c|c|}
+\hline
+\multicolumn{1}{|c|}{Container OpenMPI version} & \multicolumn{5}{c|}{FT2 OpenMPI version} \\ \hline
+\multicolumn{1}{|c|}{} & 1.10.2 & 2.0.0 & 2.0.1 & 2.0.2 & 2.1.1 \\ \hline
+1.10.2 & \color[HTML]{006600}{\cmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} \\ \hline
+2.0.0 & \textcolor{red}{\xmark} & \color[HTML]{006600}{\cmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} \\ \hline
+2.0.1 & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \color[HTML]{006600}{\cmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} \\ \hline
+2.0.2 & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \color[HTML]{006600}{\cmark} & \textcolor{red}{\xmark} \\ \hline
+2.1.1 & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \color[HTML]{006600}{\cmark} \\ \hline
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{mpirun Intel 1 and 2 nodes, hellowo}
+\label{my-label}
+\begin{tabular}{|r|c|c|}
+\hline
+\multicolumn{1}{|c|}{Container Intel MPI version} & \multicolumn{2}{c|}{FT2 Intel MPI version} \\ \hline
+ & 5.1 & 2017 \\ \hline
+5.1 &  &  \\ \hline
+2017 & \textcolor{red}{\xmark} & \color[HTML]{006600}{\cmark} \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection{srun (slurm)}
+\begin{table}[H]
+\centering
+\caption{srun front FT2, different compilers, 1 node}
+\label{my-label}
+\begin{tabular}{|r|c|c|c|c|c|}
+\hline
+\multicolumn{1}{|c|}{Container OpenMPI version} & \multicolumn{5}{c|}{FT2 OpenMPI version} \\ \hline
+\multicolumn{1}{|c|}{} & 1.10.2 & 2.0.0 & 2.0.1 & 2.0.2 & 2.1.1 \\ \hline
+1.10.2 & \color[HTML]{006600}{\cmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} \\ \hline
+2.0.0 & \textcolor{red}{\xmark} & \color[HTML]{006600}{\cmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} \\ \hline
+2.0.1 & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \color[HTML]{006600}{\cmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} \\ \hline
+2.0.2 & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \color[HTML]{006600}{\cmark} & \textcolor{red}{\xmark} \\ \hline
+2.1.1 & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \color[HTML]{006600}{\cmark} \\ \hline
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{srun front FT2, different compilers, 2 nodes}
+\label{my-label}
+\begin{tabular}{|r|c|c|c|c|c|}
+\hline
+\multicolumn{1}{|c|}{Container OpenMPI version} & \multicolumn{5}{c|}{FT2 OpenMPI version} \\ \hline
+\multicolumn{1}{|c|}{} & 1.10.2 & 2.0.0 & 2.0.1 & 2.0.2 & 2.1.1 \\ \hline
+1.10.2 & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} \\ \hline
+2.0.0 & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} \\ \hline
+2.0.1 & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} \\ \hline
+2.0.2 & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} \\ \hline
+2.1.1 & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} \\ \hline
+\end{tabular}
+\end{table}
+When this test was done, false positives were obtained for every one-to-one match. In those cases, when the ring program was executed, it did an execution for every node, but none of them could "see" the others. Because of this reason, the ring call was executed as many instances as nodes were indicated, having each of them just one process per ring. So, parallel communication was not obtained.
+
+
+\section{Binding libraries and its dependencies}
+\label{sec:linking}
+\subsection{mpi run}
+\subsection{srun (slurm)}
+\paragraph{ldd}
+\subparagraph{Tests apps: ring, hellowo}
+
+\begin{table}[H]
+\centering
+\caption{srun ring 2 nodes, mixing compilers}
+\label{my-label}
+\begin{tabular}{|r|c|c|c|c|c|}
+\hline
+\multicolumn{1}{|c|}{Container OpenMPI version} & \multicolumn{5}{c|}{FT2 OpenMPI version} \\ \hline
+\multicolumn{1}{|c|}{} & 1.10.2 & 2.0.0 & 2.0.1 & 2.0.2 & 2.1.1 \\ \hline
+1.10.2 & \color[HTML]{006600}{\cmark}  & \color[HTML]{FF4F00}{\danger} & \color[HTML]{FF4F00}{\danger} & \color[HTML]{FF4F00}{\danger} & \color[HTML]{FF4F00}{\danger} \\ \hline
+2.0.0 & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} \\ \hline
+2.0.1 & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} \\ \hline
+2.0.2 & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} \\ \hline
+2.1.1 & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} \\ \hline
+\end{tabular}
+\end{table}
+As can be seen at the table above, once all the involved libraries and its dependencies were satisfied, the test program, ring, could be executed under any container-FT2 OpenMPI mix. However, if the 1.10.2 OpenMPI container is used with a superior OpenMPI version outside, it will show a warning prompt, making reference to  different sizes in symbols (e.g. Symbol 'ompi\_mpi\_comm\_world' has different size in shared object, consider re-linking). Due to this, future real world applications could not work properly or crash.
+
+\subparagraph{Real world apps: Feel++, XH5For}
+Once the test applications passed; real world applications, build inside already created containers, were proved. For this reason, the OpenMPI version contained could not be changed.
+\begin{table}[H]
+\centering
+\caption{Feel++}
+\label{my-label}
+\begin{tabular}{|r|c|c|c|c|c|}
+\hline
+\multicolumn{1}{|c|}{Container OpenMPI version} & \multicolumn{5}{c|}{FT2 OpenMPI version} \\ \hline
+\multicolumn{1}{|c|}{} & 1.10.2 & 2.0.0 & 2.0.1 & 2.0.2 & 2.1.1 \\ \hline
+1.10.2 & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \textcolor{red}{\xmark} \\ \hline
+\end{tabular}
+\end{table}
+As can be seen, in this test, a containerized 1.10.2 OpenMPI version worked over 1.10.2, 2.0.0, 2.0.1 and 2.0.2 outside OpenMPI versions. Nevertheless, 2.1.1 outside OpenMPI did not work. Most probably this is because the latest version employs an Intel compiler, and not a GNU compiler as the other ones. So, for the very first time, a compiler dependency was discover. In order to get reduce noise as much as possible, from this moment, they are not taken into account OpenMPI versions that have not been compiled with GNU compilers.
+
+\begin{table}[H]
+\centering
+\caption{XH5For}
+\label{my-label}
+\begin{tabular}{|r|c|c|c|c|c|}
+\hline
+\multicolumn{1}{|c|}{Container OpenMPI version} & \multicolumn{5}{c|}{FT2 OpenMPI version} \\ \hline
+\multicolumn{1}{|c|}{} & 1.10.2 & 2.0.0 & 2.0.1 & 2.0.2 & 2.1.1 \\ \hline
+1.10.2 & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \textcolor{red}{\xmark} \\ \hline
+2.1.1 & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \textcolor{red}{\xmark} \\ \hline
+\end{tabular}
+\end{table}
+
+\section{Benchmarks}
+One of the biggest containers' advantages is its theoretical efficient and lightweight operating mode. When using the same kernel as the host machine, and avoiding replication as much as possible, makes of containers virtualization a great solution for HPC programs execution. \newline
+Nevertheless, until this lightness is verified, we will not stop talking about a completely theoretical framework. Because of this, some benchmarks will be done, to verify this in a practical way. \newline
+The selected bechmarks for this practical approach are the \textit{"OSU microbenchmarks"}\cite{osu-microbenchmarks}, belonging to \textit{"The Ohio State University"}, what allow us to measure some interesting parameters, such as latency or bandwidth. Once the tests were done, we will check if the obtained results belong to a reasonable Infiniband network parameters. \newline
+So, the objective of the following benchmark tests is no other than proof that containers development will allow a comparable response time, versus a native execution. \newline
+Once the \textit{"OSU microbenchmarks"} are installed, we can find a battery of test in the directory \verb|/usr/bin/libexec/osu-micro-benchmarks| (default installation directory). This battery of benchmarks is composed by the following:
+\begin{lstlisting}[language=bash,caption={OSU microbenchmarks}]
+.
+`-- osu-micro-benchmarks
+    `-- mpi
+        |-- collective
+        |   |-- osu_allgather
+        |   |-- osu_allgatherv
+        |   |-- osu_allreduce
+        |   |-- osu_alltoall
+        |   |-- osu_alltoallv
+        |   |-- osu_barrier
+        |   |-- osu_bcast
+        |   |-- osu_gather
+        |   |-- osu_gatherv
+        |   |-- osu_iallgather
+        |   |-- osu_iallgatherv
+        |   |-- osu_ialltoall
+        |   |-- osu_ialltoallv
+        |   |-- osu_ialltoallw
+        |   |-- osu_ibarrier
+        |   |-- osu_ibcast
+        |   |-- osu_igather
+        |   |-- osu_igatherv
+        |   |-- osu_iscatter
+        |   |-- osu_iscatterv
+        |   |-- osu_reduce
+        |   |-- osu_reduce_scatter
+        |   |-- osu_scatter
+        |   `-- osu_scatterv
+        |-- one-sided
+        |   |-- osu_acc_latency
+        |   |-- osu_cas_latency
+        |   |-- osu_fop_latency
+        |   |-- osu_get_acc_latency
+        |   |-- osu_get_bw
+        |   |-- osu_get_latency
+        |   |-- osu_put_bibw
+        |   |-- osu_put_bw
+        |   `-- osu_put_latency
+        |-- pt2pt
+        |   |-- osu_bibw
+        |   |-- osu_bw
+        |   |-- osu_latency
+        |   |-- osu_latency_mt
+        |   |-- osu_mbw_mr
+        |   `-- osu_multi_lat
+        `-- startup
+            |-- osu_hello
+            `-- osu_init
+\end{lstlisting}
+The working of these different benchmarks can be consulted on the \verb|README| file which is downloaded along with the benchmarks. If we do not want to download the OSU microbenchmarks package to read this file, it can be also consulted online\cite{osu-microbenchmarks-readme}. \newline
+As can be seen, a lot of different benchmarks are available on this package. We will focus our attention on the point-to-point (pt2pt) tests, what will be good approximation to the most of the real world applications' behavior.
+
+\section{Discussion 1/2-1 page}
+Ut eget est sem. Duis suscipit turpis sed orci mattis, sed tempus sapien rhoncus. Aliquam at ex nulla. Suspendisse et lorem ornare, tincidunt eros et, dictum metus. Etiam auctor elementum enim. Fusce in convallis ex, at sagittis elit. Suspendisse auctor gravida molestie. In mi tellus, tristique quis mi sed, blandit lobortis libero. 
+
+
+\begin{thebibliography}{9}
+\bibitem{nano3}
+  K. Grove-Rasmussen og Jesper Nygård,
+  \emph{Kvantefænomener i Nanosystemer}.
+  Niels Bohr Institute \& Nano-Science Center, Københavns Universitet
+\bibitem{osu-microbenchmarks}
+  OSU Micro Benchmarks [Internet] - MVAPICH: MPI over InfiniBand, Omni-Path, Ethernet/iWARP, and RoCE [Quoted July 24, 2017]. 
+Recovered from: \url{<http://mvapich.cse.ohio-state.edu/userguide/virt/#_osu_micro_benchmarks>}
+\bibitem{osu-microbenchmarks-readme}
+  OSU Micro Benchmarks README file [Internet] - MVAPICH: MPI over InfiniBand, Omni-Path, Ethernet/iWARP, and RoCE [Quoted July 24, 2017]. 
+Recovered from: \url{<http://mvapich.cse.ohio-state.edu/static/media/mvapich/README-OMB.txt>}
+
+\end{thebibliography}
+\end{document}
