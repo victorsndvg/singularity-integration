@@ -1,7 +1,7 @@
-*=======================================================================
-* Program: STREAM
+*=========================================================================
+* Program: STREAM_TUNED
 * Programmer: John D. McCalpin
-* RCS Revision: $Id: stream.f,v 5.6 2005/10/04 00:20:48 mccalpin Exp mccalpin $
+* Revision: 1.0, November 6, 2002
 *-----------------------------------------------------------------------
 * Copyright 1991-2003: John D. McCalpin
 *-----------------------------------------------------------------------
@@ -25,7 +25,7 @@
 *         accordance with the STREAM Run Rules must be clearly
 *         labelled whenever they are published.  Examples of
 *         proper labelling include:
-*         "tuned STREAM benchmark results" 
+*         "tuned STREAM benchmark results"
 *         "based on a variant of the STREAM benchmark code"
 *         Other comparable, clear and reasonable labelling is
 *         acceptable.
@@ -35,13 +35,22 @@
 *     program constitutes acceptance of these licensing restrictions.
 *  5. Absolutely no warranty is expressed or implied.
 *-----------------------------------------------------------------------
-* This program measures sustained memory transfer rates in MB/s for
-* simple computational kernels coded in FORTRAN.
+* STREAM measures memory transfer rates in MB/s for simple
+* computational kernels coded in Fortran.  
 *
 * The intent is to demonstrate the extent to which ordinary user
 * code can exploit the main memory bandwidth of the system under
 * test.
-*=======================================================================
+*
+* This version is a simple harness to allow code optimization
+* in the context of the data flow and result checking of the
+* basic STREAM version 5.0 code.   Each of the four kernel loops
+* has been moved to a separate subroutine to allow easy code 
+* optimization or replacement.
+*
+*=========================================================================
+* THIS IS JUST A STARTING POINT --- IT HAS NOT BEEN OPTIMIZED YET!!!
+*=========================================================================
 * The STREAM web page is at:
 *          http://www.streambench.org
 *
@@ -94,7 +103,7 @@
 *     IMPLICIT NONE
 C     .. Parameters ..
       INTEGER n,offset,ndim,ntimes
-      PARAMETER (n=20000000,offset=0,ndim=n+offset,ntimes=10)
+      PARAMETER (n=2000000,offset=0,ndim=n+offset,ntimes=10)
 C     ..
 C     .. Local Scalars ..
       DOUBLE PRECISION scalar,t
@@ -110,8 +119,6 @@ C     .. External Functions ..
       DOUBLE PRECISION mysecond
       INTEGER checktick,realsize
       EXTERNAL mysecond,checktick,realsize
-!$    INTEGER omp_get_num_threads
-!$    EXTERNAL omp_get_num_threads
 C     ..
 C     .. Intrinsic Functions ..
 C
@@ -134,9 +141,6 @@ C     ..
 
       nbpw = realsize()
 
-      PRINT *,'----------------------------------------------'
-      PRINT *,'STREAM Version $Revision: 5.6 $'
-      PRINT *,'----------------------------------------------'
       WRITE (*,FMT=9010) 'Array size = ',n
       WRITE (*,FMT=9010) 'Offset     = ',offset
       WRITE (*,FMT=9020) 'The total memory requirement is ',
@@ -145,18 +149,6 @@ C     ..
       WRITE (*,FMT=9030) '--'
       WRITE (*,FMT=9030) 'The *best* time for each test is used'
       WRITE (*,FMT=9030) '*EXCLUDING* the first and last iterations'
-
-!$OMP PARALLEL
-!$OMP MASTER
-      PRINT *,'----------------------------------------------'
-!$    PRINT *,'Number of Threads = ',OMP_GET_NUM_THREADS()
-!$OMP END MASTER
-!$OMP END PARALLEL
-
-      PRINT *,'----------------------------------------------'
-!$OMP PARALLEL
-      PRINT *,'Printing one line per active thread....'
-!$OMP END PARALLEL
 
 !$OMP PARALLEL DO
       DO 10 j = 1,n
@@ -183,47 +175,35 @@ C     ..
 
           t = mysecond()
           a(1) = a(1) + t
-!$OMP PARALLEL DO
-          DO 30 j = 1,n
-              c(j) = a(j)
-   30     CONTINUE
+          call stream_copy (c, a, n)
           t = mysecond() - t
           c(n) = c(n) + t
           times(1,k) = t
 
           t = mysecond()
           c(1) = c(1) + t
-!$OMP PARALLEL DO
-          DO 40 j = 1,n
-              b(j) = scalar*c(j)
-   40     CONTINUE
+          call stream_scale (b, c, scalar, n)
           t = mysecond() - t
           b(n) = b(n) + t
           times(2,k) = t
 
           t = mysecond()
           a(1) = a(1) + t
-!$OMP PARALLEL DO
-          DO 50 j = 1,n
-              c(j) = a(j) + b(j)
-   50     CONTINUE
+          call stream_add (c, a, b, n)
           t = mysecond() - t
           c(n) = c(n) + t
           times(3,k) = t
 
           t = mysecond()
           b(1) = b(1) + t
-!$OMP PARALLEL DO
-          DO 60 j = 1,n
-              a(j) = b(j) + scalar*c(j)
-   60     CONTINUE
+          call stream_triad (a, b, c, scalar, n)
           t = mysecond() - t
           a(n) = a(n) + t
           times(4,k) = t
    70 CONTINUE
 
 *       --- SUMMARY ---
-      DO 90 k = 2,ntimes
+      DO 90 k = 2,ntimes-1
           DO 80 j = 1,4
               avgtime(j) = avgtime(j) + times(j,k)
               mintime(j) = min(mintime(j),times(j,k))
@@ -232,7 +212,7 @@ C     ..
    90 CONTINUE
       WRITE (*,FMT=9040)
       DO 100 j = 1,4
-          avgtime(j) = avgtime(j)/dble(ntimes-1)
+          avgtime(j) = avgtime(j)/dble(ntimes-2)
           WRITE (*,FMT=9050) label(j),n*bytes(j)*nbpw/mintime(j)/1.0D6,
      $      avgtime(j),mintime(j),maxtime(j)
   100 CONTINUE
@@ -359,6 +339,7 @@ C     .. Intrinsic Functions ..
       INTRINSIC max,min,nint
 C     ..
       i = 0
+      t1 = mysecond()
 
    10 t2 = mysecond()
       IF (t2.EQ.t1) GO TO 10
@@ -460,3 +441,45 @@ C     to confuse aggressive optimizers.
 
       END
 
+
+*=========================================================================
+* This version is a simple harness to allow code optimization
+* in the context of the data flow and result checking of the
+* basic STREAM version 5.0 code.   Each of the four kernel loops
+* has been moved to a separate subroutine to allow easy code 
+* optimization or replacement.
+*=========================================================================
+* THESE ARE JUST STARTING POINTS --- THEY HAVE NOT BEEN OPTIMIZED YET!!!
+*=========================================================================
+
+          subroutine stream_copy (c, a, n)
+          real*8 c(*), a(*)
+!$OMP PARALLEL DO
+          do j = 1,n
+              c(j) = a(j)
+          end do
+          end
+
+          subroutine stream_scale (b, c, scalar, n)
+          real*8 b(*), c(*), scalar
+!$OMP PARALLEL DO
+          do j = 1,n
+              b(j) = scalar*c(j)
+          end do
+          end
+
+          subroutine stream_add (c, a, b, n)
+          real*8 c(*), a(*), b(*)
+!$OMP PARALLEL DO
+          do j = 1,n
+              c(j) = a(j) + b(j)
+          end do
+          end
+
+          subroutine stream_triad (a, b, c, scalar, n)
+          real*8 a(*), b(*), c(*), scalar
+!$OMP PARALLEL DO
+          do j = 1,n
+              a(j) = b(j) + scalar*c(j)
+          end do
+          end
