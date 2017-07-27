@@ -233,7 +233,8 @@ As can be seen, in this test, a containerized 1.10.2 OpenMPI version worked over
 
 \section{Benchmarks}
 One of the biggest containers' advantages is its theoretical efficient and lightweight operating mode. When using the same kernel as the host machine, and avoiding replication as much as possible, makes of containers virtualization a great solution for HPC programs execution. \newline
-Nevertheless, until this lightness is verified, we will not stop talking about a completely theoretical framework. Because of this, some benchmarks will be done, to verify this in a practical way. \newline
+Nevertheless, until this lightness is verified in our work environment, we will not stop talking about a completely theoretical framework. Because of this, some benchmarks will be done, to verify this in a practical way.
+\subsection{Network benchmarks: OSU microbenchmarks}
 The selected bechmarks for this practical approach are the \textit{"OSU microbenchmarks"}\cite{osu-microbenchmarks}, belonging to \textit{"The Ohio State University"}, what allow us to measure some interesting parameters, such as latency or bandwidth. Once the tests were done, we will check if the obtained results belong to a reasonable Infiniband network parameters. \newline
 So, the objective of the following benchmark tests is no other than proof that containers development will allow a comparable response time, versus a native execution. \newline
 Once the \textit{"OSU microbenchmarks"} are installed, we can find a battery of test in the directory \verb|/usr/bin/libexec/osu-micro-benchmarks| (default installation directory). This battery of benchmarks is composed by the following:
@@ -289,6 +290,20 @@ Once the \textit{"OSU microbenchmarks"} are installed, we can find a battery of 
 \end{lstlisting}
 The working of these different benchmarks can be consulted on the \verb|README| file which is downloaded along with the benchmarks. If we do not want to download the OSU microbenchmarks package to read this file, it can be also consulted online\cite{osu-microbenchmarks-readme}. \newline
 As can be seen, a lot of different benchmarks are available on this package. We will focus our attention on the point-to-point (pt2pt) tests, what will be good approximation to the most of the real world applications' behavior.
+\subsection{RAM benchmarks: STREAM}
+The STREAM benchmark is a simple synthetic benchmark program that measures sustainable memory bandwidth (in MB/s) and the corresponding computation rate for simple vector kernels. The STREAM benchmark uses data sets much larger than the available cache on a system, which avoids large amounts of time devoted waiting for cache misses to be satisfied. Because of this reason, STREAM documentation indicates that the value of the \verb|STREAM_ARRAY_SIZE| must be at least four times larger than the combined size of all last level caches used in the run. But this is not the only limitation to define the value of \verb|STREAM_ARRAY_SIZE|: Its size should be large enough so that the "timing calibration" output by the program is at least 20 clock-ticks. Example: most versions of Windows have a 10 millisecond timer granularity. 20 "ticks" at 10 ms/tic is 200 milliseconds. If the chip is capable of 10 GB/s, it moves 2 GB in 200 msec. This means the each array must be at least 1 GB, or 128M elements. \newline
+Turning to our particular case, Finis Terrae II nodes have 24 cores, with the following memory cache structure:
+\begin{itemize}
+\item L1d cache: 32K
+\item L1i cache: 32K
+\item L2 cache: 256K
+\item L3 cache: 30720K
+\end{itemize}
+So, attending to the previous limitations to define the value of the \verb|STREAM_ARRAY_SIZE|, it is important to consider the values of the last level cache, as well as the number of available cores. Doing some arithmetic, we can observe that the sum total of the last level cache is 720MB (30720K = 30MB per core). Then, a 720MB four times size will be needed (2880MB should be a correct array size). I will define the value of the \verb|STREAM_ARRAY_SIZE| as 380000000, which should be a value larger enough for our porposes. \newline
+The other limitation factor, the "timing calibration" output by the program, can not be considered until the program is executed, so it will be ignored at the moment. \newline
+Continuing with the values under the benchmark will be done, it is important to consider that STREAM runs each kernel \verb|NTIMES| times and reports the best result for any iteration after the first. The selected value for this variable will be the default one: 10 times. \newline
+Finally, keep in mind that we must compile the code with optimization and enabling the OpenMP options to be able to use multiprocessing.
+
 
 \section{Discussion 1/2-1 page}
 Ut eget est sem. Duis suscipit turpis sed orci mattis, sed tempus sapien rhoncus. Aliquam at ex nulla. Suspendisse et lorem ornare, tincidunt eros et, dictum metus. Etiam auctor elementum enim. Fusce in convallis ex, at sagittis elit. Suspendisse auctor gravida molestie. In mi tellus, tristique quis mi sed, blandit lobortis libero. 

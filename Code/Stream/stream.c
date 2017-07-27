@@ -1,4 +1,4 @@
-/*-----------------------------------------------------------------------*/
+ /*-----------------------------------------------------------------------*/
 /* Program: STREAM                                                       */
 /* Revision: $Id: stream.c,v 5.10 2013/01/17 16:01:06 mccalpin Exp mccalpin $ */
 /* Original code developed by John D. McCalpin                           */
@@ -62,13 +62,13 @@
  *           Example 1: One Xeon E3 with 8 MB L3 cache
  *               STREAM_ARRAY_SIZE should be >= 4 million, giving
  *               an array size of 30.5 MB and a total memory requirement
- *               of 91.5 MB.  
+ *               of 91.5 MB.
  *           Example 2: Two Xeon E5's with 20 MB L3 cache each (using OpenMP)
  *               STREAM_ARRAY_SIZE should be >= 20 million, giving
  *               an array size of 153 MB and a total memory requirement
- *               of 458 MB.  
+ *               of 458 MB.
  *       (b) The size should be large enough so that the 'timing calibration'
- *           output by the program is at least 20 clock-ticks.  
+ *           output by the program is at least 20 clock-ticks.
  *           Example: most versions of Windows have a 10 millisecond timer
  *               granularity.  20 "ticks" at 10 ms/tic is 200 milliseconds.
  *               If the chip is capable of 10 GB/s, it moves 2 GB in 200 msec.
@@ -77,7 +77,7 @@
  *      Version 5.10 increases the default array size from 2 million
  *          elements to 10 million elements in response to the increasing
  *          size of L3 caches.  The new default size is large enough for caches
- *          up to 20 MB. 
+ *          up to 20 MB.
  *      Version 5.10 changes the loop index variables from "register int"
  *          to "ssize_t", which allows array indices >2^32 (4 billion)
  *          on properly configured 64-bit systems.  Additional compiler options
