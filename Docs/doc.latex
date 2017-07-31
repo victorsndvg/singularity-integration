@@ -97,11 +97,11 @@ something...
 
 \subsection{Available compilers}
 gnu, intel...
-\begin{figure}[h]
+\begin{figure}[H]
 \centering\includegraphics[width=0.6\linewidth]{cubo-pruebas-sin-nombre-final}
 \caption{Figure caption}
 \end{figure}
-\begin{figure}[h]
+\begin{figure}[H]
 \centering\includegraphics[width=0.6\linewidth]{desglose-cubo}
 \caption{Figure caption}
 \end{figure}
@@ -316,22 +316,6 @@ Once the \textit{OSU microbenchmarks} are installed, we can find a battery of te
 The working of these different benchmarks can be consulted on the \verb|README| file which is downloaded along with the benchmarks. If we do not want to download the \textit{OSU microbenchmarks} package to read this file, it can be also consulted online\cite{osu-microbenchmarks-readme}. \newline
 As can be seen, a lot of different benchmarks are available on this package. We will focus our attention on the point-to-point (pt2pt) tests, what will allow us to measure and to evaluate the network's characteristics from the own containers.
 
-\subsection{CPU benchmarks: HPL}
-\textit{HPL}\cite{HPL}, a portable implementation of the \textit{High-Performance Linpack Benchmark} for distributed-memory computers, is a software package that solves a random dense linear system in double precision arithmetic on distributed-memory computers.
-
-
-The \textit{HPL} package provides a testing and timing program to quantify the accuracy of the obtained solution as well as the time it took to compute it. It requires the availibility on the system of an implementation of the Message Passing Interface (MPI). An implementation of either the Basic Linear Algebra Subprograms BLAS or the Vector Signal Image Processing Library VSIPL is also needed. These requisites make \textit{HPL} an excelent CPU usage measurer candidate for our concrete research.
-
-
-The end of this benchmark it is not to reach the infrastructure peak of performance, but what is pursued is to verify the functioning and to check
-the correct performance mixing different MPI versions inside-outside containers to make a comparison with an one-to-one inside-outside MPI versions execution, already done.
-
-
-What will be done is to reproduce a series of executions that were already made in the cluster, under an one-to-one inside-outside MPI versions. Thus, once all the results are obtained, both behaviors will be compared, and it will be reasoned if the solution with mixing MPI versions containers supposes, if it exists, a reasonable delay.
-
-
-In order to get a battery of results a little varied, what will be done is to execute these benchmarks with an upward focus. By this I mean that I will reproduce its execution making use of a greater number of processors each time. Computations will be run in 1, 2, 4, 8, 16 and 32 nodes at FinisTerrae II. For every node increment, the problem's size will increase too, in order to take always approximately 80-90\% of available memory of the involved nodes. This is what is called a scalability test weak.
-
 \subsection{RAM benchmarks: STREAM}
 The \textit{STREAM} benchmark\cite{stream} is a simple synthetic benchmark program that measures sustainable memory bandwidth (in MB/s) and the corresponding computation rate for simple vector kernels. The reason why the \textit{STREAM} benchmark was the selected, and not another one, is because \textit{STREAM} is the de facto industry standard benchmark for measuring sustained memory bandwidth. It uses data sets much larger than the available cache on a system, which avoids large amounts of time devoted waiting for cache misses to be satisfied. Because of this reason, \textit{STREAM} documentation indicates that the value of the \verb|STREAM_ARRAY_SIZE| must be at least four times larger than the combined size of all last level caches used in the run. But this is not the only limitation to define the value of \verb|STREAM_ARRAY_SIZE|: Its size should be large enough so that the "timing calibration" output by the program is at least 20 clock-ticks. Example: most versions of Windows have a 10 millisecond timer granularity. 20 "ticks" at 10 ms/tic is 200 milliseconds. If the chip is capable of 10 GB/s, it moves 2 GB in 200 msec. This means the each array must be at least 1 GB, or 128M elements.
 
@@ -423,6 +407,43 @@ Now that all the results were obtained, we can easily compare them. Starting wit
 
 
 So, after all the done tests and the obtained results, we can say that a containerized solution will make use of the machine memory that will come very close to the use that would be made under a native execution. \textbf{Native and container executions are comparable in terms of memory.}
+
+\subsection{CPU benchmarks: HPL}
+\textit{HPL}\cite{HPL}, a portable implementation of the \textit{High-Performance Linpack Benchmark} for distributed-memory computers, is a software package that solves a random dense linear system in double precision arithmetic on distributed-memory computers.
+
+
+The \textit{HPL} package provides a testing and timing program to quantify the accuracy of the obtained solution as well as the time it took to compute it. It requires the availibility on the system of an implementation of the Message Passing Interface (MPI). An implementation of either the Basic Linear Algebra Subprograms BLAS or the Vector Signal Image Processing Library VSIPL is also needed. These requisites make \textit{HPL} an excelent CPU usage measurer candidate for our concrete research.
+
+
+The end of this benchmark it is not to reach the infrastructure peak of performance, but what is pursued is to verify the functioning and to check
+the correct performance mixing different MPI versions inside-outside containers to make a comparison with an one-to-one inside-outside MPI versions execution, already done.
+
+
+What will be done is to reproduce a series of executions that were already made in the cluster, under an one-to-one inside-outside MPI versions. Thus, once all the results are obtained, both behaviors will be compared, and it will be reasoned if the solution with mixing MPI versions containers supposes, if it exists, a reasonable delay.
+
+
+In order to get a battery of results a little varied, what will be done is to execute these benchmarks with an upward focus. By this I mean that I will reproduce its execution making use of a greater number of processors each time. Computations will be run in 1, 2, 4, 8, 16 and 32 nodes at FinisTerrae II. For every node increment, the problem's size will increase too, in order to take always approximately 80-90\% of available memory of the involved nodes. This is what is called a scalability test weak. \newline
+
+The results of the one-to-one inside-outside MPI versions weak scaling tests show an increase of the aggregated performance as we increase the number of nodes involved. Looking at the results we can also see that the performance per node is maintained almost immutable along the different executions. These results are also very close to the expected theoretical values.
+
+Figure \nameref{Weak scaling test 1} shows the performance (logarithmic scale) of the weak scaling test depending on the number of nodes involved in the computation.
+
+To provide another view of the obtained values, they can also be seen in figure \nameref{Weak scaling test 2}, with a different scale for the vertical axis (GFlops).
+
+\begin{figure}[ht]
+\centering
+     \includegraphics[width=1.0\textwidth]{CPU-graph-1}
+      \caption{Weak scaling test 1}
+       \label{Weak scaling test 1}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+     \includegraphics[width=1.0\textwidth]{CPU-graph-2}
+      \caption{Weak scaling test 2}
+       \label{Weak scaling test 2}
+\end{figure}
+
 
 
 \section{Discussion 1/2-1 page}
