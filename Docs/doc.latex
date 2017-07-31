@@ -9,6 +9,7 @@
 \usepackage{nameref}
 \usepackage{pifont}
 \usepackage{hyperref}
+\usepackage{indentfirst}
 \usepackage{listings}
 \lstset{basicstyle=\ttfamily,
   showstringspaces=false,
@@ -22,7 +23,7 @@
 \newcommand{\cmark}{\ding{51}}%
 \newcommand{\xmark}{\ding{55}}%
 
-\title{MPI interversion compability with Singularity containers over Finis Terrae II using an Infiniband network}
+\title{MPI interversion compability with Singularity containers over Finis Terrae II using an InfiniBand network}
 
 \author{Manuel Simon Novoa}
 
@@ -234,12 +235,32 @@ As can be seen, in this test, a containerized 1.10.2 OpenMPI version worked over
 \end{table}
 
 \section{Benchmarks}
-One of the biggest containers' advantages is its theoretical efficient and lightweight operating mode. When using the same kernel as the host machine, and avoiding replication as much as possible, makes of containers virtualization a great solution for HPC programs execution. \newline
+
+
+One of the biggest containers' advantages is its theoretical efficient and lightweight operating mode. When using the same kernel as the host machine, and avoiding replication as much as possible, makes of containers virtualization a great solution for HPC programs execution.
+
+
 Nevertheless, until this lightness is verified in our work environment, we will not stop talking about a completely theoretical framework. Because of this, some benchmarks will be done, to verify this in a practical way.
-\subsection{Network benchmarks: OSU microbenchmarks}
-The selected bechmarks for this practical approach are the \textit{"OSU microbenchmarks"}\cite{osu-microbenchmarks}, belonging to \textit{"The Ohio State University"}, what allow us to measure some interesting parameters, such as latency or bandwidth. Once the tests were done, we will check if the obtained results belong to a reasonable Infiniband network parameters. \newline
-So, the objective of the following benchmark tests is no other than proof that containers development will allow a comparable response time, versus a native execution. \newline
-Once the \textit{"OSU microbenchmarks"} are installed, we can find a battery of test in the directory \verb|/usr/bin/libexec/osu-micro-benchmarks| (default installation directory). This battery of benchmarks is composed by the following:
+
+
+So, the objective of the following benchmark tests is no other than proof that containers development will allow a great response time.
+\subsection{InfiniBand network benchmarks: OSU microbenchmarks}
+Since the goal of this document is the description of how to use Singularity containers employing different versions of MPI, one of the most interesting benchmarks that can be done is the use of the network. We are not talking about a network that connects with the outside, but an internode network that allows the communication of the different processors for a correct parallel operation. For this purpose, FinisTerrae II, as well as many others clusters, uses an InfiniBand network. InfiniBand is a computer-networking communications standard used in high-performance computing that features very high throughput and very low latency. It is used for data interconnect both among and within computers.
+
+
+So, now the Singularity containers are using MPI, we will check if they are making use of the InfiniBand network for that. 
+
+
+The selected bechmarks for this practical approach are the \textit{OSU microbenchmarks}\cite{osu-microbenchmarks}, belonging to \textit{The Ohio State University}, what will allow us to measure some interesting parameters, such as latency or bandwidth. Once the tests were done, we will check if the obtained results belong to a reasonable InfiniBand network parameters.
+
+
+When the \textit{OSU microbenchmark} pack is downloaded in our container, it can be compilled and installed easily thanks to the included makefile.
+\begin{lstlisting}[language=bash,caption={Installing OSU microbenchmarks}]
+sudo singularity exec -w CONTAINER_NAME.img ./configure CC=/path/to/special/mpicc --prefix=<path-to-install> && make && make install
+\end{lstlisting}
+
+
+Once the \textit{OSU microbenchmarks} are installed, we can find a battery of test in the directory \verb|/usr/bin/libexec/osu-micro-benchmarks| (default installation directory). This battery of benchmarks is composed by the following:
 \begin{lstlisting}[language=bash,caption={OSU microbenchmarks}]
 .
 `-- osu-micro-benchmarks
@@ -290,11 +311,35 @@ Once the \textit{"OSU microbenchmarks"} are installed, we can find a battery of 
             |-- osu_hello
             `-- osu_init
 \end{lstlisting}
-The working of these different benchmarks can be consulted on the \verb|README| file which is downloaded along with the benchmarks. If we do not want to download the OSU microbenchmarks package to read this file, it can be also consulted online\cite{osu-microbenchmarks-readme}. \newline
-As can be seen, a lot of different benchmarks are available on this package. We will focus our attention on the point-to-point (pt2pt) tests, what will be good approximation to the most of the real world applications' behavior.
+
+
+The working of these different benchmarks can be consulted on the \verb|README| file which is downloaded along with the benchmarks. If we do not want to download the \textit{OSU microbenchmarks} package to read this file, it can be also consulted online\cite{osu-microbenchmarks-readme}. \newline
+As can be seen, a lot of different benchmarks are available on this package. We will focus our attention on the point-to-point (pt2pt) tests, what will allow us to measure and to evaluate the network's characteristics from the own containers.
+
+\subsection{CPU benchmarks: HPL}
+\textit{HPL}\cite{HPL}, a portable implementation of the \textit{High-Performance Linpack Benchmark} for distributed-memory computers, is a software package that solves a random dense linear system in double precision arithmetic on distributed-memory computers.
+
+
+The \textit{HPL} package provides a testing and timing program to quantify the accuracy of the obtained solution as well as the time it took to compute it. It requires the availibility on the system of an implementation of the Message Passing Interface (MPI). An implementation of either the Basic Linear Algebra Subprograms BLAS or the Vector Signal Image Processing Library VSIPL is also needed. These requisites make \textit{HPL} an excelent CPU usage measurer candidate for our concrete research.
+
+
+The end of this benchmark it is not to reach the infrastructure peak of performance, but what is pursued is to verify the functioning and to check
+the correct performance mixing different MPI versions inside-outside containers to make a comparison with an one-to-one inside-outside MPI versions execution, already done.
+
+
+What will be done is to reproduce a series of executions that were already made in the cluster, under an one-to-one inside-outside MPI versions. Thus, once all the results are obtained, both behaviors will be compared, and it will be reasoned if the solution with mixing MPI versions containers supposes, if it exists, a reasonable delay.
+
+
+In order to get a battery of results a little varied, what will be done is to execute these benchmarks with an upward focus. By this I mean that I will reproduce its execution making use of a greater number of processors each time. Computations will be run in 1, 2, 4, 8, 16 and 32 nodes at FinisTerrae II. For every node increment, the problem's size will increase too, in order to take always approximately 80-90\% of available memory of the involved nodes. This is what is called a scalability test weak.
+
 \subsection{RAM benchmarks: STREAM}
-The STREAM benchmark is a simple synthetic benchmark program that measures sustainable memory bandwidth (in MB/s) and the corresponding computation rate for simple vector kernels. The reason why the STREAM benchmark was the selected, and not another one, is because STREAM is the de facto industry standard benchmark for measuring sustained memory bandwidth. It uses data sets much larger than the available cache on a system, which avoids large amounts of time devoted waiting for cache misses to be satisfied. Because of this reason, STREAM documentation indicates that the value of the \verb|STREAM_ARRAY_SIZE| must be at least four times larger than the combined size of all last level caches used in the run. But this is not the only limitation to define the value of \verb|STREAM_ARRAY_SIZE|: Its size should be large enough so that the "timing calibration" output by the program is at least 20 clock-ticks. Example: most versions of Windows have a 10 millisecond timer granularity. 20 "ticks" at 10 ms/tic is 200 milliseconds. If the chip is capable of 10 GB/s, it moves 2 GB in 200 msec. This means the each array must be at least 1 GB, or 128M elements. \newline
-To run the Stream Benchmark on multiprocessor, there are several choices: OpenMP, pthreads, and MPI. Pursuing a global consistency, we will use the MPI version of STREAM\footnote{Specifically, stream\_mpi.c, the version of STREAM MPI coded in C, without more reason than the knowledge of the language by the writter of this document.}, instead of its default version, which uses OpenMP. Thank of this version, we will be able to measure the employed RAM under a multiprocessor multinode container environment, using an Infiniband network, that is, after all, the goal of this research. This will require MPI support installed, an already well-known requirement. \newline
+The \textit{STREAM} benchmark\cite{stream} is a simple synthetic benchmark program that measures sustainable memory bandwidth (in MB/s) and the corresponding computation rate for simple vector kernels. The reason why the \textit{STREAM} benchmark was the selected, and not another one, is because \textit{STREAM} is the de facto industry standard benchmark for measuring sustained memory bandwidth. It uses data sets much larger than the available cache on a system, which avoids large amounts of time devoted waiting for cache misses to be satisfied. Because of this reason, \textit{STREAM} documentation indicates that the value of the \verb|STREAM_ARRAY_SIZE| must be at least four times larger than the combined size of all last level caches used in the run. But this is not the only limitation to define the value of \verb|STREAM_ARRAY_SIZE|: Its size should be large enough so that the "timing calibration" output by the program is at least 20 clock-ticks. Example: most versions of Windows have a 10 millisecond timer granularity. 20 "ticks" at 10 ms/tic is 200 milliseconds. If the chip is capable of 10 GB/s, it moves 2 GB in 200 msec. This means the each array must be at least 1 GB, or 128M elements.
+
+
+To run the Stream Benchmark on multiprocessor, there are several choices: OpenMP, pthreads, and MPI. Pursuing a global consistency, we will use the MPI version of \textit{STREAM}\footnote{Specifically, stream\_mpi.c, the version of STREAM MPI coded in C, without more reason than the knowledge of the language by the writter of this document.}, instead of its default version, which uses OpenMP. Thank of this version, we will be able to measure the employed RAM under a multiprocessor multinode container environment, using an InfiniBand network, that is, after all, the goal of this research. This will require MPI support installed, an already well-known requirement.
+
+
+If the reader of this document wishes to go further into the operation of STREAM, online official documentation\cite{stream-documentation} can be consulted. \newline
 Turning to our particular case, Finis Terrae II nodes have 24 cores, with the following memory cache structure:
 \begin{itemize}
 \item L1d cache: 32K
@@ -302,29 +347,108 @@ Turning to our particular case, Finis Terrae II nodes have 24 cores, with the fo
 \item L2 cache: 256K
 \item L3 cache: 30720K
 \end{itemize}
-So, attending to the previous limitations to define the value of the \verb|STREAM_ARRAY_SIZE|, it is important to consider the values of the last level cache, as well as the number of available cores. As a plus requirement, added because of the MPI use, two different nodes will be used, in order to ensure the MPI and Infiniband network utilization. Besides, it is important to reserve the nodes by they full (employing the 24 cores per node and all the available RAM), obtaining the benchmark execution in a blocking way under this environment, without other parallel processes that could generate noise. Doing some arithmetic, we can observe that the sum total of the last level cache per node is 720MiB (30720K = 30MiB per core, having 24 cores). Then, a 720MiB four times size will be needed (2880MiB should be a correct array size), considering a simple-node execution. Since we will execute the benchmark using two nodes, we will have twice the cache: 1440MiB on its last level, obtaining now a size of 5760MB as a great value for the \verb|STREAM_ARRAY_SIZE|. So, I will define the value of the \verb|STREAM_ARRAY_SIZE| as 760000000, which should be a value larger enough for our purposes. \newline
-The other limitation factor, the "timing calibration" output by the program, can not be considered until the program is executed, so it will be ignored at the moment. \newline
-Continuing with the values under the benchmark will be done, it is important to consider that STREAM runs each kernel \verb|NTIMES| times and reports the best result for any iteration after the first. The selected value for this variable will be the default one: 10 times. \newline
+
+
+So, attending to the previous limitations to define the value of the \verb|STREAM_ARRAY_SIZE|, it is important to consider the values of the last level cache, as well as the number of available cores. As a plus requirement, added because of the MPI use, two different nodes will be used, in order to ensure the MPI and InfiniBand network utilization. Besides, it is important to reserve the nodes by they full (employing the 24 cores per node and all the available RAM), obtaining the benchmark execution in a blocking way under this environment, without other parallel processes that could generate noise. Doing some arithmetic, we can observe that the sum total of the last level cache per node is 720MiB (30720K = 30MiB per core, having 24 cores). Then, a 720MiB four times size will be needed (2880MiB should be a correct array size), considering a simple-node execution. Since we will execute the benchmark using two nodes, we will have twice the cache: 1440MiB on its last level, obtaining now a size of 5760MB as a great value for the \verb|STREAM_ARRAY_SIZE|. So, I will define the value of the \verb|STREAM_ARRAY_SIZE| as 760000000, which should be a value larger enough for our purposes. 
+
+
+The other limitation factor, the "timing calibration" output by the program, can not be considered until the program is executed, so it will be ignored at the moment. 
+
+
+Continuing with the values under the benchmark will be done, it is important to consider that STREAM runs each kernel \verb|NTIMES| times and reports the best result for any iteration after the first. The selected value for this variable will be the default one: 10 times. 
+
+
 Finally, keep in mind that we must compile the code with optimization and enabling the correct options to be able to use multiprocessing; employing OpenMPI mpicc in our case. Array size can be set at compile time without modifying the source code for the (many) compilers that support preprocessor definitions on the compile line.
 \begin{lstlisting}[language=bash,caption={Compilation example employing Singularity containers}]
-sudo singularity exec CONTAINER_NAME.img mpicc -m64 -o /usr/bin/stream_mpi -O -DSTREAM_ARRAY_SIZE=760000000 stream_mpi.c
+sudo singularity exec -w CONTAINER_NAME.img mpicc -m64 -o /usr/bin/stream_mpi -O -DSTREAM_ARRAY_SIZE=760000000 stream_mpi.c
 \end{lstlisting}
+
+
+Once the test were executed and the results were obtained, we can analyze them and obtain a series of conclusions. First of all, we will check the values that has to do with the array size and its implications.
+\begin{itemize}
+\item Total Aggregate Array size = 760000000 (elements)
+\item Total Aggregate Memory per array = 5798.3 MiB (= 5.7 GiB).
+\item Total Aggregate memory required = 17395.0 MiB (= 17.0 GiB).
+\item Data is distributed across 48 MPI ranks
+\begin{itemize}
+\item   Array size per MPI rank = 15833333 (elements)
+\item   Memory per array per MPI rank = 120.8 MiB (= 0.1 GiB).
+\item   Total memory per MPI rank = 362.4 MiB (= 0.4 GiB).
+\end{itemize}
+\end{itemize}
+
+
+As can be seen, the execution worked over a 760000000 elements array and over 48 different cores, employing MPI. This ensures the wished multinode multicore execution. Due to these parameters, some concrete size values are obtained; e.g. a total aggregate memory value of 17GiB. 
+
+
+The second important execution output which must be reasoned is the timer granularity, inasmuch as it was previously defined as a limitation factor. The output value for the granularity/precision appears to be 1 microseconds, what will make each test to take on the order of 54269 microseconds (= 54269 timer ticks). Turning back our attention to the needed premises for a great execution, we can check that the array size should be large enough so that the "timing calibration" output by the program is at least 20 clock-ticks. As 54269 >> 20, we can conclude the array size is large enough, and the results will suppose a good study sample. 
+
+
+The obtained results for the defined test are:
+\begin{table}[H]
+\centering
+\caption{Container STREAM benchmark results}
+\label{my-label}
+\begin{tabular}{|c|c|l|c|c|c|}
+\hline
+Function & \multicolumn{2}{c|}{Best rate (MB/s)} & Avg time & Min time & Max time \\ \hline
+Copy     & \multicolumn{2}{c|}{155550.7}         & 0.078218 & 0.078174 & 0.078288 \\ \hline
+Scale    & \multicolumn{2}{c|}{154837.6}         & 0.078575 & 0.078534 & 0.078641 \\ \hline
+Add      & \multicolumn{2}{c|}{177616.6}         & 0.102739 & 0.102693 & 0.102845 \\ \hline
+Triad    & \multicolumn{2}{c|}{177573.8}         & 0.102803 & 0.102718 & 0.103148 \\ \hline
+\end{tabular}
+\end{table}
+
+
+Continuing the memory benchmark study, a native execution will be done\footnote{In this case, the \texttt{stream\_mpi.c} program were compiled using the GNU compiler gcc/5.3.0, the 1.10.2 version of Open MPI, and enabling the optimization compiling flags.}, in order to compare both executions, the containerized one and the native one. Obviously, the parameters under the native execution will be done are exactly the same than those which were used in the previous containerized execution. That is why they will not be analyzed again. The obtained results under the native execution are:
+\begin{table}[H]
+\centering
+\caption{Native STREAM benchmark results}
+\label{my-label}
+\begin{tabular}{|c|c|l|c|c|c|}
+\hline
+Function & \multicolumn{2}{c|}{Best rate (MB/s)} & Avg time & Min time & Max time \\ \hline
+Copy     & \multicolumn{2}{c|}{155478.6}         & 0.078266 & 0.078210 & 0.078386 \\ \hline
+Scale    & \multicolumn{2}{c|}{154717.4}         & 0.078623 & 0.078595 & 0.078691 \\ \hline
+Add      & \multicolumn{2}{c|}{177729.3}         & 0.102662 & 0.102628 & 0.102683 \\ \hline
+Triad    & \multicolumn{2}{c|}{177710.3}         & 0.102694 & 0.102639 & 0.102851 \\ \hline
+\end{tabular}
+\end{table}
+
+
+Note that the test results have an avg error less than 1.000000e-13 on all three arrays for both cases, what make them a reliable source. 
+
+
+Now that all the results were obtained, we can easily compare them. Starting with those related to the execution times, observe that they present values with differences that hover around the magnitude of 1.0e-4 seconds. In addition, there is no execution that always obtains the best results (less time), but in some cases this value is obtained by the native execution and in others by the containerized solution. Looking now at the bandwidth rate, there is no a clear difference between the results to assign a solution better than the other one. \newline 
+
+
+So, after all the done tests and the obtained results, we can say that a containerized solution will make use of the machine memory that will come very close to the use that would be made under a native execution. \textbf{Native and container executions are comparable in terms of memory.}
+
 
 \section{Discussion 1/2-1 page}
 Ut eget est sem. Duis suscipit turpis sed orci mattis, sed tempus sapien rhoncus. Aliquam at ex nulla. Suspendisse et lorem ornare, tincidunt eros et, dictum metus. Etiam auctor elementum enim. Fusce in convallis ex, at sagittis elit. Suspendisse auctor gravida molestie. In mi tellus, tristique quis mi sed, blandit lobortis libero. 
 
 
 \begin{thebibliography}{9}
-\bibitem{nano3}
-  K. Grove-Rasmussen og Jesper Nygård,
-  \emph{Kvantefænomener i Nanosystemer}.
-  Niels Bohr Institute \& Nano-Science Center, Københavns Universitet
 \bibitem{osu-microbenchmarks}
   OSU Micro Benchmarks [Internet] - MVAPICH: MPI over InfiniBand, Omni-Path, Ethernet/iWARP, and RoCE [Quoted July 24, 2017]. 
 Recovered from: \url{<http://mvapich.cse.ohio-state.edu/userguide/virt/#_osu_micro_benchmarks>}
+
 \bibitem{osu-microbenchmarks-readme}
-  OSU Micro Benchmarks README file [Internet] - MVAPICH: MPI over InfiniBand, Omni-Path, Ethernet/iWARP, and RoCE [Quoted July 24, 2017]. 
+  OSU Micro Benchmarks README file [Internet] - MVAPICH: MPI over InfiniBand, Omni-Path, Ethernet/iWARP, and RoCE [Quoted July 24, 2017].
 Recovered from: \url{<http://mvapich.cse.ohio-state.edu/static/media/mvapich/README-OMB.txt>}
+
+\bibitem{HPL}
+  HPL - A Portable Implementation of the High-Performance Linpack Benchmark for Distributed-Memory Computers [Internet] - The Innovative Computing Laboratory (ICL) of the University of Tennesse [Quoted July 28, 2017]. 
+Recovered from: \url{<http://www.netlib.org/benchmark/hpl/>}
+
+\bibitem{stream}
+  STREAM: Sustainable Memory Bandwidth in High Performance Computers [Internet] [Quoted July 28, 2017]. 
+Recovered from: \url{<https://www.cs.virginia.edu/stream/>}
+
+\bibitem{stream-documentation}
+  STREAM ref. - STREAM: Sustainable Memory Bandwidth in High Performance Computers [Internet] [Quoted July 28, 2017]. 
+Recovered from: \url{<https://www.cs.virginia.edu/stream/ref.html>}
 
 \end{thebibliography}
 \end{document}
