@@ -430,21 +430,37 @@ Figure \nameref{Weak scaling test 1} shows the performance (logarithmic scale) o
 
 To provide another view of the obtained values, they can also be seen in figure \nameref{Weak scaling test 2}, with a different scale for the vertical axis (GFlops).
 
-\begin{figure}[ht]
+\begin{figure}[H]
 \centering
      \includegraphics[width=1.0\textwidth]{CPU-graph-1}
       \caption{Weak scaling test 1}
        \label{Weak scaling test 1}
 \end{figure}
 
-\begin{figure}[ht]
+\begin{figure}[H]
 \centering
      \includegraphics[width=1.0\textwidth]{CPU-graph-2}
       \caption{Weak scaling test 2}
        \label{Weak scaling test 2}
 \end{figure}
 
+Comparing those results with the inside-outside mixed MPI execution, it is clear that both have the same trend. However, in the mix test, a little delay is present. At this point, it is important to clarify that the test has been performed only once (a single execution), due to the large computational time that is required for this. Therefore, in the absence of comparisons with other executions, it is possible that this particular case has produced factors that generate noise, thus causing this delay. So, if we look at figures \nameref{Weak scaling test 3} and \nameref{Weak scaling test 4}, we will be able to appreciate this little delay, especially on the 32 nodes execution.
 
+\begin{figure}[H]
+\centering
+     \includegraphics[width=1.0\textwidth]{CPU-graph-3}
+      \caption{Weak scaling test 3}
+       \label{Weak scaling test 3}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+     \includegraphics[width=1.0\textwidth]{CPU-graph-4}
+      \caption{Weak scaling test 4}
+       \label{Weak scaling test 4}
+\end{figure}
+
+Therefore, despite the fact that the execution with inside-outside mixed MPI has presented a small delay, this is not of a great magnitude. In addition, this delay may occur only as a consequence of some uncontrolled noise. Therefore, we can say that the \textbf{execution with inside-outside mixed MPI is a good solution in terms of computational time, although it may not be the best.}
 
 \section{Discussion 1/2-1 page}
 Ut eget est sem. Duis suscipit turpis sed orci mattis, sed tempus sapien rhoncus. Aliquam at ex nulla. Suspendisse et lorem ornare, tincidunt eros et, dictum metus. Etiam auctor elementum enim. Fusce in convallis ex, at sagittis elit. Suspendisse auctor gravida molestie. In mi tellus, tristique quis mi sed, blandit lobortis libero. 
