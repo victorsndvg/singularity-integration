@@ -10,6 +10,7 @@
 \usepackage{pifont}
 \usepackage{hyperref}
 \usepackage{indentfirst}
+\usepackage{lipsum}
 \usepackage{listings}
 \lstset{basicstyle=\ttfamily,
   showstringspaces=false,
@@ -22,6 +23,7 @@
 \usepackage{amssymb}% http://ctan.org/pkg/amssymb
 \newcommand{\cmark}{\ding{51}}%
 \newcommand{\xmark}{\ding{55}}%
+\newcommand\hr{\par\vspace{-.5\ht\strutbox}\noindent\hrulefill\par}
 
 \title{MPI interversion compability with Singularity containers over Finis Terrae II using an InfiniBand network}
 
@@ -251,7 +253,7 @@ Since the goal of this document is the description of how to use Singularity con
 So, now the Singularity containers are using MPI, we will check if they are making use of the InfiniBand network for that. 
 
 
-The selected bechmarks for this practical approach are the \textit{OSU microbenchmarks}\cite{osu-microbenchmarks}, belonging to \textit{The Ohio State University}, what will allow us to measure some interesting parameters, such as latency or bandwidth. Once the tests were done, we will check if the obtained results belong to a reasonable InfiniBand network parameters.
+The selected bechmarks for this practical approach are the \textit{OSU microbenchmarks}\cite{osu-microbenchmarks}, belonging to \textit{The Ohio State University}, what will allow us to measure some interesting parameters, such as latency or bandwidth. Once the tests were done, we will check if the obtained results belong to a reasonable InfiniBand network parameters. The objective of this test is not to obtain the best possible results in relation to the network, but only to see if the containers are actually making use of the InfiniBand network, so no real optimizations were done with the network.
 
 
 When the \textit{OSU microbenchmark} pack is downloaded in our container, it can be compilled and installed easily thanks to the included makefile.
@@ -315,6 +317,32 @@ Once the \textit{OSU microbenchmarks} are installed, we can find a battery of te
 
 The working of these different benchmarks can be consulted on the \verb|README| file which is downloaded along with the benchmarks. If we do not want to download the \textit{OSU microbenchmarks} package to read this file, it can be also consulted online\cite{osu-microbenchmarks-readme}. \newline
 As can be seen, a lot of different benchmarks are available on this package. We will focus our attention on the point-to-point (pt2pt) tests, what will allow us to measure and to evaluate the network's characteristics from the own containers.
+
+\paragraph{Latency Tests}
+\subparagraph{osu\_latency - Latency Test}
+The latency tests are carried out in a ping-pong fashion. The sender sends a message with a certain data size to the receiver and waits for a reply from the receiver. The receiver receives the message from the sender and sends back a reply with the same data size. Many iterations of this ping-pong test are carried out and average one-way latency numbers are obtained. Blocking version of MPI functions (MPI\_Send and MPI\_Recv) are used in the tests.
+\subparagraph{osu\_multi\_lat - Multi-pair Latency Test}
+This test is very similar to the latency test. However, at the same instant multiple pairs are performing the same test simultaneously. In order to perform the test across just two nodes the hostnames must be specified in block fashion. 
+
+\paragraph{Bandwidth Tests}
+\subparagraph{osu\_bw - Bandwidth Test}
+The bandwidth tests were carried out by having the sender sending out a fixed number (equal to the window size) of back-to-back messages to the receiver and then waiting for a reply from the receiver. The receiver sends the reply only after receiving all these messages. This process is repeated for several iterations and the bandwidth is calculated based on the elapsed time (from the time sender sends the first message until the time it receives the reply back from the receiver) and the number of bytes sent by the sender. The objective of this bandwidth test is to determine the maximum sustained date rate that can be achieved at the network level. Thus, non-blocking version of MPI functions (MPI\_Isend and MPI\_Irecv) were used in the test. 
+
+\subparagraph{osu\_bibw - Bidirectional Bandwidth Test}
+The bidirectional bandwidth test is similar to the bandwidth test, except that both the nodes involved send out a fixed number of back-to-back messages and wait for the reply. This test measures the maximum sustainable aggregate bandwidth by two nodes.
+
+\subparagraph{osu\_mbw\_mr - Multiple Bandwidth / Message Rate Test}
+The multi-pair bandwidth and message rate test evaluates the aggregate uni-directional bandwidth and message rate between multiple pairs of processes. Each of the sending processes sends a fixed number of messages (the window size) back-to-back to the paired receiving process before waiting for a reply from the receiver. This process is repeated for several iterations. The objective of this benchmark is to determine the achieved bandwidth and message rate from one node to another node with a configurable number of processes running on each node. 
+
+
+\hr
+Having understood the purpose and behavior of the tests to be performed, we proceed to explain how they will be executed. We will make use of a little battery of five containers with Ubuntu 16.04.2 LTS (Ubuntu Xenial). Each container will have installed inside different Open MPI versions: 1.10.2, 2.0.0. 2.0.1, 2.0.2 and 2.1.1. Then, the \textit{OSU microbenchmarks} will be executed under the Finis Terrae II employing these containers, and mixing them with different Open MPI versions on it (outside the containers). The selected outside Open MPI versions are: 1.10.2, 2.0.0 and 2.0.1. So, a total of fifteen executions per test will be done, in order to obtain more stable values.
+
+
+To ensure the use of the InfiniBand network, the obtained values will be compared with other scientific texts that tell how they used the same tests to measure their own InfiniBand network. These texts belong to research centers or similar, so they will be considered completely reliable sources. Some of them compare the InfiniBand network values versus the Ethernet network values obtained under the same tests. So, if the results obtained under the Finis Terrae II hover around similar values, the InfiniBand network use will be assured.
+
+
+Once the different benchmarks were executed, it is easily observable that the obtained results under the same Open MPI version out of the container are very stable for the five Open MPI version combinations within the container. However, this does not happen when we talk about total Open MPI combinations outside the containers (although in some cases it remains completely stable). Observed this behavior, what has been done is to perform the average of the values belonging to the same version of Open MPI outside the container, to perform a comparison between the three versions of Open MPI outside the container.
 
 \subsection{RAM benchmarks: STREAM}
 The \textit{STREAM} benchmark\cite{stream} is a simple synthetic benchmark program that measures sustainable memory bandwidth (in MB/s) and the corresponding computation rate for simple vector kernels. The reason why the \textit{STREAM} benchmark was the selected, and not another one, is because \textit{STREAM} is the de facto industry standard benchmark for measuring sustained memory bandwidth. It uses data sets much larger than the available cache on a system, which avoids large amounts of time devoted waiting for cache misses to be satisfied. Because of this reason, \textit{STREAM} documentation indicates that the value of the \verb|STREAM_ARRAY_SIZE| must be at least four times larger than the combined size of all last level caches used in the run. But this is not the only limitation to define the value of \verb|STREAM_ARRAY_SIZE|: Its size should be large enough so that the "timing calibration" output by the program is at least 20 clock-ticks. Example: most versions of Windows have a 10 millisecond timer granularity. 20 "ticks" at 10 ms/tic is 200 milliseconds. If the chip is capable of 10 GB/s, it moves 2 GB in 200 msec. This means the each array must be at least 1 GB, or 128M elements.
