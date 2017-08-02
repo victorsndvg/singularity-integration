@@ -344,6 +344,58 @@ To ensure the use of the InfiniBand network, the obtained values will be compare
 
 Once the different benchmarks were executed, it is easily observable that the obtained results under the same Open MPI version out of the container are very stable for the five Open MPI version combinations within the container. However, this does not happen when we talk about total Open MPI combinations outside the containers (although in some cases it remains completely stable). Observed this behavior, what has been done is to perform the average of the values belonging to the same version of Open MPI outside the container, to perform a comparison between the three versions of Open MPI outside the container.
 
+\paragraph{Latency Tests}
+\subparagraph{osu\_latency - Latency Test} As can be shown in figure \nameref{OSU Latency Test}, all tests showed very stable results regardless of the version of Open MPI used. The latency values shown are very small, less than 6 microseconds with window sizes up to 8192 bytes.
+\begin{figure}[H]
+\centering
+     \includegraphics[width=1.0\textwidth]{osu_latency}
+      \caption{OSU Latency Test}
+       \label{OSU Latency Test}
+\end{figure}
+
+\subparagraph{osu\_multi\_lat - Multi-pair Latency Test} For the execution of this test, four cores were employed, in four different nodes. Results can be observed in figure \nameref{OSU Multi-pair Latency Test}. It seems that by extending the complexity of the problem, making multiple pairs to perform the same test simultaneously, at the same instant, not suppose a problem for the latency. The obtained results show one more time an extraordinary stability and a very low latency.
+\begin{figure}[H]
+\centering
+     \includegraphics[width=1.0\textwidth]{osu_multi_lat}
+      \caption{OSU Multi-pair Latency Test}
+       \label{OSU Multi-pair Latency Test}
+\end{figure}
+
+\paragraph{Bandwidth Tests}
+\subparagraph{osu\_bw - Bandwidth Test} The general behavior of this test is the expected and desired. It can be observed in figure \nameref{OSU Bandwidth Test} As the window size increases, the bandwidth required for transmission is increased, until the point at which the maximum bandwidth is reached, which is near 6000 MB/s. In general, the different versions of Open MPI outside the container do not represent a differentiating factor in terms of bandwidth. However, in the central values it is possible to observe a slight advantage under the use of Open MPI 1.10.2. Anyway, in the "critical" values, which could be considered those in which the bandwidth is being consumed in its entirety, they all have the same behavior.
+\begin{figure}[H]
+\centering
+     \includegraphics[width=1.0\textwidth]{osu_bw}
+      \caption{OSU Bandwidth Test}
+       \label{OSU Bandwidth Test}
+\end{figure}
+
+\subparagraph{osu\_bibw - Bidirectional Bandwidth Test}
+Now, problem complexity will be increased, making both the nodes involved send out a fixed number of back-to-back messages and wait for the reply. Due to the success of the uni-directional Bandwidth test, the expected result to this test is the double value achievement, compared to the uni-directional test. Contrary to what might be expected, the behavior shown is not stable. As can be seen in figure \nameref{OSU Bidirectional Bandwidth Test}, once the window size is bigger than 8192MB, results appear chaotic and without apparent sense. Version 1.10.2 appears to be the most stable, but its high scalability once the 8192MB threshold is passed can be interpreted as a bad signal too.
+\begin{figure}[H]
+\centering
+     \includegraphics[width=1.0\textwidth]{osu_bibw}
+      \caption{OSU Bidirectional Bandwidth Test}
+       \label{OSU Bidirectional Bandwidth Test}
+\end{figure}
+
+\subparagraph{osu\_mbw\_mr - Multiple Bandwidth}
+Now the number of cores involved in the problem will be increased. A total of four cores (belonging to four different nodes) were used. So, the waited behavior is to have two senders and two receivers, what will cause the obtaining of double the bandwidth, compared to the uni-directional test, since the result are added. Fortunately this is what it was obtained as result, as can be seen in figure \nameref{OSU Multiple Bandwidth Test}.
+\begin{figure}[H]
+\centering
+     \includegraphics[width=1.0\textwidth]{osu_mbw_mr_bandwidth}
+      \caption{OSU Multiple Bandwidth Test}
+       \label{OSU Multiple Bandwidth Test}
+\end{figure}
+\subparagraph{osu\_mbw\_mr - Message Rate Test}
+Analyzing the message rate, if we deal with small sized messages, such as those shown at the beginning of the graph \nameref{OSU Message Rate Test}, a big number of them can be sent, thanks to the big bandwidth available. As its size increases, the bandwidth will not be enough to send so many. Therefore, the behavior should be approximately the reverse of the \nameref{OSU Multiple Bandwidth Test} graph (behavior, not numbers!). As an add-on, it can be said that for smaller sized messages as the outside Open MPI version is higher, its behavior is getting better.
+\begin{figure}[H]
+\centering
+     \includegraphics[width=1.0\textwidth]{osu_mbw_mr_messages}
+      \caption{OSU Message Rate Test}
+       \label{OSU Message Rate Test}
+\end{figure}
+
 \subsection{RAM benchmarks: STREAM}
 The \textit{STREAM} benchmark\cite{stream} is a simple synthetic benchmark program that measures sustainable memory bandwidth (in MB/s) and the corresponding computation rate for simple vector kernels. The reason why the \textit{STREAM} benchmark was the selected, and not another one, is because \textit{STREAM} is the de facto industry standard benchmark for measuring sustained memory bandwidth. It uses data sets much larger than the available cache on a system, which avoids large amounts of time devoted waiting for cache misses to be satisfied. Because of this reason, \textit{STREAM} documentation indicates that the value of the \verb|STREAM_ARRAY_SIZE| must be at least four times larger than the combined size of all last level caches used in the run. But this is not the only limitation to define the value of \verb|STREAM_ARRAY_SIZE|: Its size should be large enough so that the "timing calibration" output by the program is at least 20 clock-ticks. Example: most versions of Windows have a 10 millisecond timer granularity. 20 "ticks" at 10 ms/tic is 200 milliseconds. If the chip is capable of 10 GB/s, it moves 2 GB in 200 msec. This means the each array must be at least 1 GB, or 128M elements.
 
