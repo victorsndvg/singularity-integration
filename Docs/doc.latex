@@ -41,13 +41,36 @@ Enter a short summary here. What topic do you want to investigate and why? What 
 \section{Introduction 5 lines to max 1/2 page}
 \label{sec:introduction}
 
-Víctor says: Hola!
+\section{Architecture description}
+\label{sec:architecture}
+The tests and executions named in the following document were launched it all under the hardware described in this section. As this research belong to the \textit{Supercomputing Center of Galicia (CESGA)}, the selected machine to perform the development was the \textit{Finis Terrae II}.
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce mattis mauris nec neque lacinia mattis. Mauris tincidunt sapien quis tortor malesuada ullamcorper. Curabitur quis mauris sed odio viverra facilisis vel a nibh. Proin et vehicula est. In dictum blandit odio sit amet laoreet. Integer blandit purus id dolor sollicitudin tempor. Praesent turpis erat, aliquet ac tellus nec, iaculis laoreet augue. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut malesuada magna velit, non varius dui lacinia ut. Nulla facilisi. Nulla vulputate malesuada nisl. Mauris mauris est, consequat id condimentum nec, viverra quis est. Curabitur fermentum, sem sed lacinia auctor, nisi tellus interdum tellus, a suscipit libero libero a nulla. Praesent eu felis volutpat, viverra metus sit amet, viverra purus. In volutpat porttitor velit vel efficitur.
+\textit{Finis Terrae} is a scientific computing infrastructure managed by \textit{CESGA} and integrated in RES (the Spanish Supercomputing Network), a Spanish Unique Scientific and Technical Installation (ICTS). It is a linux based heterogeneous cluster, with an Infiniband FDR low latency network interconnecting 317 computing nodes based on Intel Xeon Hasswell processors. Together, these nodes are able to provide a computing power of 328 TFLOPS, 44,8 TB of RAM and 1,5 PB of disk capacity. The system includes a high performance parallel storage system able to achieve a speed of more than 20 GB/s.
 
-In a auctor ligula. Proin finibus quam a nisl molestie malesuada. Donec a enim purus. Mauris vel nisl ultrices, fringilla diam nec, volutpat tortor. Fusce malesuada, nisi egestas lobortis malesuada, nibh odio faucibus nulla, quis porttitor ligula ante et mauris. Nullam sed nisl interdum, fermentum turpis ut, dapibus orci. Maecenas venenatis arcu mauris, ut ultrices sapien venenatis vitae. Fusce semper sed tellus in commodo. In ornare erat vitae tincidunt euismod. Vestibulum nisi ex, fringilla sit amet dictum vel, venenatis feugiat tellus. Pellentesque eu nibh faucibus, posuere magna ac, volutpat sem.
+\begin{figure}[H]
+\centering
+     \includegraphics[width=1.0\textwidth]{infraFTII}
+      \caption{Finis Terrae II Infrastructure}
+       \label{Finis Terrae II Infrastructure}
+\end{figure}
 
-Mauris ut lobortis odio, sed hendrerit nulla. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas lacinia ac leo ac placerat. In fringilla dolor vel ipsum rutrum, at finibus libero posuere. Integer eu varius elit. Aliquam erat volutpat. Nulla sed risus libero. Aliquam elementum eleifend sapien eu tristique.  \cite{nano3}.
+\section{Research motivation}
+\label{sec:motivation}
+Traditional deployment of software performed in HPCs present some issues which make it very inflexible. Different approaches, like could be the containerization technology, can provide an interesting alternative that is more flexible with very little impact on performance.
+
+Traditional software deployment and integration consists in performing all the needed steps, like download, configure, build, test and install, to have the software project natively in a production infrastructure. The main goal of this task is to provide the software with good performance and ready to use for end users.
+
+Scientific software is extremely complex from an architectural point of view. It is usually composed of numerous mathematical concepts and features implemented along several software components in order to provide high level abstraction layers. These layers can be implemented in the software project itself or integrated via third party libraries or software components. The whole environment of each scientific software is usually composed of a complex dependency matrix and, at least, one programming language and compiler.
+
+Isolation and integration of all dependency matrices at HPC clusters are traditionally managed by environment modules. Environment Modules provide a way to dynamically change the user environment through module files. Lmod, a Lua based module system, is being used at FinisTerrae II.
+
+The key advantage of environment modules is that it allows to use multiple versions of a program or package from the same account by just loading the proper module file. In general, module files are created on per application per version basis. They can be dynamically loaded, unloaded, or switched. Along with the capability of using multiple versions of the same software it also can be used to implement site policies regarding the access and use of applications.
+
+Module files allow managing the loading and unloading of environments to run a particular application, but to manage complex work-flows with environment modules can be sometimes unaffordable, and requires the re-installation of some tools with compatible dependencies. These issues are difficult to manage from the user and the administrator point of view.
+
+Finally, the hardware and software ecosystem of an HPC production infrastructure is different than a development ecosystem, and usually a lot of unexpected issues appear while integrating and deploying the complex environment of mathematical frameworks. To integrate the whole environment of each software project in a production infrastructure is usually hard and time consuming.
+
+Also,as this software is evolving very fast and using the latest technologies and features of the compilers, new versions are provided very frequently. This puts a lot of pressure on the software support team of the infrastructures. Even though there are some tools that could help in this process, like \textit{EasyBuild}\cite{easybuild}, an application to manage software on High Performance Computing (HPC) systems in an efficient way.
 
 \section{Used technologies: what, why and how}
 \label{sec:technologies}
@@ -552,6 +575,10 @@ Ut eget est sem. Duis suscipit turpis sed orci mattis, sed tempus sapien rhoncus
 
 
 \begin{thebibliography}{9}
+\bibitem{easybuild}
+  Easybuild [Internet] - EasyBuild: building software with ease. [Quoted August 03, 2017]. 
+Recovered from: \url{<https://easybuilders.github.io/easybuild/>}
+
 \bibitem{osu-microbenchmarks}
   OSU Micro Benchmarks [Internet] - MVAPICH: MPI over InfiniBand, Omni-Path, Ethernet/iWARP, and RoCE [Quoted July 24, 2017]. 
 Recovered from: \url{<http://mvapich.cse.ohio-state.edu/userguide/virt/#_osu_micro_benchmarks>}
