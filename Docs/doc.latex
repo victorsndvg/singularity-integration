@@ -72,6 +72,57 @@ Finally, the hardware and software ecosystem of an HPC production infrastructure
 
 Also,as this software is evolving very fast and using the latest technologies and features of the compilers, new versions are provided very frequently. This puts a lot of pressure on the software support team of the infrastructures. Even though there are some tools that could help in this process, like \textit{EasyBuild}\cite{easybuild}, an application to manage software on High Performance Computing (HPC) systems in an efficient way.
 
+So, what is intended to do is to find a simple and efficient way that allow to deploy and integrate that complex software with its dependencies. The goal is to reduce at maximum at possible the previously named time consuming. Most importantly, because end users can come up with endless combinations of software and dependencies, it is to achieve maximum portability, but without losing the computational capacity of the system.
+
+\section{Technology selection}
+\label{sec:technology-selection}
+In accordance with the requirements mentioned in the previous section, a study of the state of the art was made to select the solution that best fits the presented problem.
+
+It is very important to always keep in mind these premises, since they are the ones that will limit the selection of the solution:
+\begin{itemize}
+\item The operating system of the cluster can not be modified, since there are other jobs that are currently running in the same without any problem, and it is not possible to hinder its execution.
+\item We must make use of the available hardware (shown in section \nameref{sec:architecture}) as efficiently as possible; that is, we can not limit the resources (CPU, memory, network, etc.)
+\end{itemize}
+
+Thus, some common virtualization solutions are:
+
+\subsection{Emulation}
+An emulator typically functions as an interpreter who reads the instructions from the virtual operating system (guest) and translates them into instructions that can run smoothly on the host operating system. In this way the emulator provides the virtual operating system with a simulated execution environment. The emulator itself runs like any other application on the host operating system. The emulated hardware may or may not match the actual machine on which the emulator is running. Emulators recreate a complete environment, including all CPU instructions and I/O devices using software, which is why performance is deeply affected.
+
+Therefore, because of that problem with performance, the second premise can not be accomplished. Emulation solution does not seem to be the best.
+
+\subsection{Virtualization of the Operating System - Containerization} 
+In this type of virtualization runs only a kernel, the host, which also attends calls from virtual systems. Virtualization software (usually called a container) uses a set of libraries that translate virtual operating system calls into the appropriate format to be executed on the hardware using the host operating system. The environment provided by the container may or may not match the actual machine on which it is run. In case it does not match, the translator will be quite complex. Each container runs in its own environment, although they all share the same resources. It is possible to reallocate these resources to implement quality of service. In addition, operating system virtualization has the advantage that overhead is minimal.
+
+Therefore, this is a solution that allows flexibility in addition to a minimum overhead. 
+
+Although the containerization techniques is a buzzword nowadays especially in the Datacenter and Cloud industry, the idea is quite old. Container or "chroot" (change root) was a Linux technology to isolate single processes from each other without the need of emulating different hardware for them. Containers are lightweight operating systems within the Host Operating system that runs them. It uses native instructions on the core CPU, without the requirement of any VMM (Virtual Machine Manager). The only limitation is that we have to use the Host operating systems kernel to use the existing hardware components, unlike with virtualization, where we could use different operating systems without any restriction at the cost of the performance overhead. This is the key feature for the project. We could use different software, libraries even different Linux distribution without reinstalling the system. This makes HPC systems more flexible and easy to use for scientists and developers.
+
+Container technology has become very popular as it makes application deployment very easy and efficient. As people move from virtualization to container technology, many enterprises have adopted software container for cloud application deployment. There is a stiff competition to push different technologies in the market. Although Docker is the most popular, to choose the right technology, depending on the purpose, it is important to understand what each of them stands for and does.
+
+Several containerization technologies (like LXC, Docker, Udocker and Singularity) have been tested in the context of this project, but finally, Docker was rejected because of its kernel requirements and security. For example FinisTerrae-II does not have the kernel required by Docker. Udocker and Singularity were developed specifically to be used in HPC environments, as we will describe below. Both of them are Docker-compatible, and help to empower end-users of HPC systems providing a contained location where to manage their installations and custom software. They are also a great solution for developers, one of the biggest benefits for them is to deliver their software in a controlled environment and ready-to-use.
+
+In one hand, Udocker is a basic user tool to execute simple Docker containers in user space without requiring root privileges, which enables basic download and sequential execution of docker containers by non-privileged users in Linux systems. It can be used to access and execute the content of docker containers in Linux batch systems and interactive clusters that are managed by other entities such as grid infrastructures or externally managed batch or interactive systems.
+
+Although the Udocker development team is working to integrate it with message passing interface libraries (MPI), unfortunately, it is not yet supported.
+
+On the other hand, Singularity was designed focusing on HPC and allows to leverage the resources of whatever host in which the software is running. This includes HPC interconnects, resource managers, file systems, GPUs and/or accelerators, etc.
+
+Singularity was also designed around the notion of extreme mobility of computing and reproducible science. Singularity is also used to perform HPC in the cloud on AWS, Google Cloud, Azure and other cloud providers. This makes it possible to develop a research work-flow on a laboratory or a laboratory server, then bundle it to run on a departmental cluster, on a leadership class supercomputer, or in the cloud.
+
+The simple usage of Singularity allows users to manage the creation of new containers and also to run parallel applications easily. Figure \nameref{Singularity work-flow at Finis Terrae II} shows the work-flow for creating and running containers using Singularity at Finis Terrae II.
+
+\begin{figure}[H]
+\centering
+     \includegraphics[width=1.0\textwidth]{singularity-workflow}
+      \caption{Singularity work-flow at Finis Terrae II}
+       \label{Singularity work-flow at Finis Terrae II}
+\end{figure}
+
+As we can see in the previous figure, users can create or pull images from public registries (like Docker Hub\cite{dockerhub} or Singularity Hub\cite{singularityhub}), and also import images from tar pipes. Once the image is created, singularity allows to execute the container in interactive mode, and test or run any contained application using batch systems. All the work-flow can be managed by a normal user at Finis Terrae II, except the bootstrap process that needs to be called by a superuser. We can use a virtual machine with superuser privileges to modify or adapt and image to the infrastructure using the bootstrap Singularity command.
+
+This work-flow allow an automatized integration and deployment, deriving in a very flexible and portable solution.
+
 \section{Used technologies: what, why and how}
 \label{sec:technologies}
 
@@ -578,6 +629,14 @@ Ut eget est sem. Duis suscipit turpis sed orci mattis, sed tempus sapien rhoncus
 \bibitem{easybuild}
   Easybuild [Internet] - EasyBuild: building software with ease. [Quoted August 03, 2017]. 
 Recovered from: \url{<https://easybuilders.github.io/easybuild/>}
+
+\bibitem{dockerhub}
+  Docker Hub [Internet] [Quoted August 04, 2017]. 
+Recovered from: \url{<https://hub.docker.com/>}
+
+\bibitem{singularityhub}
+  Singularity Hub [Internet] [Quoted August 04, 2017]. 
+Recovered from: \url{<https://singularityhub.com/>}
 
 \bibitem{osu-microbenchmarks}
   OSU Micro Benchmarks [Internet] - MVAPICH: MPI over InfiniBand, Omni-Path, Ethernet/iWARP, and RoCE [Quoted July 24, 2017]. 
