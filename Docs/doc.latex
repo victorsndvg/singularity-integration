@@ -40,6 +40,7 @@ Enter a short summary here. What topic do you want to investigate and why? What 
 
 \section{Introduction 5 lines to max 1/2 page}
 \label{sec:introduction}
+\newpage
 
 \section{Architecture description}
 \label{sec:architecture}
@@ -56,7 +57,7 @@ The tests and executions named in the following document were launched it all un
 
 \section{Research motivation}
 \label{sec:motivation}
-Traditional deployment of software performed in HPCs present some issues which make it very inflexible. Different approaches, like could be the containerization technology, can provide an interesting alternative that is more flexible with very little impact on performance.
+Traditional software deployment performed in HPCs present some issues which make it very inflexible. Different approaches, like could be the containerization technology, can provide an interesting alternative that is more flexible with very little impact on performance.
 
 Traditional software deployment and integration consists in performing all the needed steps, like download, configure, build, test and install, to have the software project natively in a production infrastructure. The main goal of this task is to provide the software with good performance and ready to use for end users.
 
@@ -92,7 +93,7 @@ An emulator typically functions as an interpreter who reads the instructions fro
 Therefore, because of that problem with performance, the second premise can not be accomplished. Emulation solution does not seem to be the best.
 
 \subsection{Virtualization of the Operating System - Containerization} 
-In this type of virtualization runs only a kernel, the host, which also attends calls from virtual systems. Virtualization software (usually called a container) uses a set of libraries that translate virtual operating system calls into the appropriate format to be executed on the hardware using the host operating system. The environment provided by the container may or may not match the actual machine on which it is run. In case it does not match, the translator will be quite complex. Each container runs in its own environment, although they all share the same resources. It is possible to reallocate these resources to implement quality of service. In addition, operating system virtualization has the advantage that overhead is minimal.
+This type of virtualization runs only a kernel, the host, which also attends calls from virtual systems. Virtualization software (usually called a container) uses a set of libraries that translate virtual operating system calls into the appropriate format to be executed on the hardware using the host operating system. The environment provided by the container may or may not match the actual machine on which it is run. In case it does not match, the translator will be quite complex. Each container runs in its own environment, although they all share the same resources. It is possible to reallocate these resources to implement quality of service. In addition, operating system virtualization has the advantage that overhead is minimal.
 
 Therefore, this is a solution that allows flexibility in addition to a minimum overhead. 
 
@@ -123,36 +124,228 @@ As we can see in the previous figure, users can create or pull images from publi
 
 This work-flow allow an automatized integration and deployment, deriving in a very flexible and portable solution.
 
-\section{Used technologies: what, why and how}
+\section{Involved technologies}
 \label{sec:technologies}
+The hardware under all the tests and executions were executed were already described in section \nameref{sec:architecture}. Now it is turn to describe all the involved software needed to perform the solution, as well as all the implications they could have.
 
-TODO: writte a previous intro
+\subsection{Host Operating System and kernel}
+The Finis Terrae II host machine have a \textbf{\textit{Red Hat Enterprise Linux Server (RHEL) release 6.7 (Santiago)}}, with a kernel version \verb|Linux 2.6.32-573.12.1.el6.x86_64|. Fortunately, this kernel version is compatible with Singularity.
 
-\subsection{A brief introduction to Singularity}
-Lorem ipsum
+\subsection{Singularity}
+In order to understand Singularity's operation mode, some explanations will be done: 
 
-\subsection{Variables of the development environment}
-How the containers will be done? Why? Tests...
-\paragraph{Open MPI}
-Selected versions... why $\rightarrow$ FT2
-\paragraph{Intel MPI}
-Same...
+\paragraph{Process Flow}
+\subparagraph{}
+The goal of Singularity is to run an application within a contained environment such as it was not contained. Thus there is a balance between what to separate and what not to separate. At present the virtualized namespaces are process, mount points, and certain parts of the contained file system.
 
-\subsection{Research of the development environment}
-Bootstrap files and its creation. Short intro and raised possibilities.
-\paragraph{Using the default version included in different Linux distributions}
-Trying ubuntu, debian and red hat distros. Using policy command.
-\paragraph{Installing different OpenMPI versions on Ubuntu 16.10 containers}
-How is the software installed?
-Bootstrap files and scripts for its creation (automation)
+On the other hand, Singularity does not support user escalation or context changes, nor does it have a root owned daemon process managing the container namespaces. It also exec’s the process work-flow inside the container and seamlessly redirects all IO in and out of the container directly between the environments. This makes doing things like MPI, X11 forwarding, and other kinds of work tasks trivial for Singularity.\newline
 
-\subsection{Final containers creation proccess}
-Example of a bootstrap definition file
+When executing container commands, the Singularity process flow can be generalized as follows:
+\begin{enumerate}
+\item Singularity application is invoked
+\item Global options are parsed and activated
+\item The Singularity command (subcommand) process is activated
+\item Subcommand options are parsed
+\item The appropriate sanity checks are made
+\item Environment variables are set
+\item The Singularity Execution binary is called (sexec)
+\item Sexec determines if it is running privileged and calls the SUID code if necessary
+\item Namespaces are created depending on configuration and process requirements
+\item The Singularity image is checked, parsed, and mounted in the CLONE\_NEWNS namespace
+\item Bind mount points are setup
+\item The namespace CLONE\_FS is used to virtualize a new root file system Singularity calls \verb|execvp()| and Singularity process itself is replaced by the process inside the container
+\item When the process inside the container exists, all namespaces collapse with that process, leaving a clean system
+\end{enumerate}
+All of the above steps take approximately 15-25 thousandths of a second to run, which is fast enough to seem instantaneous. \newline
 
-\section{Study environment: availabilities and limitations}
-\label{sec:environment}
-something...
-\subsection{What's the 'objetos de estudio'}
+\paragraph{Images}
+\subparagraph{} 
+Singularity images are single files which physically contains the container. The effect of all files existing virtually within a single image greatly simplifies sharing, copying, branching, and other management tasks.
+
+You do not need admin/sudo to use Singularity containers. You do however need admin/root access to install Singularity and to build/manage your containers and images, but to use the containers you do not need any additional privileges to run programs within it.
+
+Because Singularity is based on container principals, when an application is run from within a Singularity container its default view of the file system is different from how it is on the host system. This is what allows the environment to be portable. This means that root (/) inside the container is different from the host!
+
+Singularity automatically tries to resolve directory mounts such that things will just work and be portable with whatever environment you are running on. This means that /tmp and /var/tmp are automatically shared into the container as is /home. Additionally, if you are in a current directory that is not a system directory, Singularity will also try to bind that to your container.
+
+Note that there is a caveat in that a directory must already exist within your container to serve as a mount point. If that directory does not exist, Singularity will not create it for you! You must do that.
+
+\paragraph{Resources sharing}
+ \subparagraph{}
+Singularity does no network isolation because it is designed to run like any other application on the
+system. It has all of the same networking privileges as any program running as that user.
+
+Singularity also allows you to leverage the resources of whatever host you are on. This includes HPC interconnects, resource managers, file systems, GPUs and/or accelerators, etc. Singularity does this by enabling several key facets:
+\begin{itemize}
+\item Encapsulation of the environment
+\item Containers are image based
+\item No user contextual changes or root escalation allowed
+\item No root owned daemon processes
+\end{itemize}
+
+\paragraph{Glibc}
+\subparagraph{}
+There is also some level of glibc forward compatibility that must be taken into consideration for any container system. For example, I can take a Centos-5 container and run it on Centos-7, but I can not take a Centos-7 container and run it on Centos-5. So, If you require kernel dependent features, a container platform is probably not the right solution for you.
+
+\paragraph{Bootstrap}
+\subparagraph{}
+Bootstrapping is the process where we install an operating system and then configure it appropriately for a specified need. To do this we use a bootstrap definition file which is a recipe of how to specifically build the container.
+
+The bootstrap command is useful for creating a new bootstrap or modifying an existing one using a definition file that describes how to build the container.\newline
+
+A Bootstrap definition file contains two main parts:
+\begin{enumerate}
+\item \textbf{Header}: The core operating system to bootstrap whithin the container.
+
+The Bootstrap: keyword Identifies the singularity module (yum, debootstrap, arch, docker) that will be used for building the core components of the OS. Depending on the loaded module several keywords can be used to particularize the installation (MirrorURL, OSVersion, Include, From, etc.)
+\item \textbf{Sections}: Shell scriptlets to run during the bootstrap process. The Boostrap sections are:
+\begin{itemize}
+\item setup: A Bourne shell scriptlet which will be executed on the host outside the container during bootstrap. 
+\item post: A Bourne shell scriptlet executed during bootstraping from inside the container.
+\item runscript: A persistent scriptlet in the container that will be executed via the singularity run command.
+\item test: A persistent scriplet in the container that will be executed via the singularity test command. This section will be also executed at the end of the bootstrap process.
+\end{itemize}
+\end{enumerate}
+
+\hr
+Since Singularity operation should already be clear, only the Singularity versions used can be indicated: In the \textbf{local machine}, where root permissions are available, the Singularity version employed is \textbf{2.3-dist}. The Singularity version available on the \textbf{cluster} is \textbf{Singularity 2.2.1}.
+
+\subsection{MPI}
+\paragraph{Libraries}
+\subparagraph{}
+Since it is intended to use MPI, libraries will be used to enable this task. The selection of these libraries was done just checking those already installed on the cluster. The main efforts were put in the properly work of Open MPI, but some tests were done with Intel MPI too. This is the list with the MPI libraries and versions which are available on the cluster:
+\begin{itemize}
+\item Open MPI
+  \begin{itemize}
+  \item Open MPI 1.10.2
+  \item Open MPI 2.0.0
+  \item Open MPI 2.0.1
+  \item Open MPI 2.0.2
+  \item Open MPI 2.1.1
+\end{itemize}
+\item Intel MPI
+  \begin{itemize}
+  \item Intel MPI 5.1
+  \item Intel MPI 2017
+  \end{itemize}
+\end{itemize}
+
+\paragraph{MPI Singularity integration}
+\subparagraph{}
+As Singularity is the final selected technology selection to manage containers at Finis Terrae II, its relation with High Performance Computing will be enlarged. The most critical point is the correct use of MPI. \newline
+
+Singularity developers ensure that their product has the ability to properly integrate with the Message Passing Interface (MPI)\cite{mpi-singularity}: \textit{"Work has already been done for out of the box compatibility with Open MPI (both in Open MPI v2.1.x as well as part of Singularity)."} Later in this document this will be tested. \newline
+
+The Open MPI/Singularity workflow works as follows:
+
+\begin{enumerate}
+\item mpirun is called by the resource manager or the user directly from a shell
+\item     Open MPI then calls the process management daemon (ORTED)
+\item     The ORTED process launches the Singularity container requested by the mpirun command
+\item     Singularity builds the container and namespace environment
+\item     Singularity then launches the MPI application within the container
+\item     The MPI application launches and loads the Open MPI libraries
+\item     The Open MPI libraries connect back to the ORTED process via the Process Management Interface (PMI)
+\item     At this point the processes within the container run as they would normally directly on the host.
+\end{enumerate}
+
+This entire process happens behind the scenes, and from the user's perspective running via MPI is as simple as just calling mpirun on the host as they would normally. \newline
+
+To achieve proper containerized Open MPI support, Open MPI version 2.1 should be used. However, Singularity team explain that there are  three caveats:
+
+\begin{enumerate}
+\item     Open MPI 1.10.x may work but we expect you will need exactly matching version of PMI and Open MPI on both host and container (the 2.1 series should relax this requirement).
+\item     Open MPI 2.1.0 has a bug affecting compilation of libraries for some interfaces (particularly Mellanox interfaces using libmxm are known to fail). If your in this situation you should use the master branch of Open MPI rather than the release.
+\item     Using Open MPI 2.1 does not magically allow your container to connect to networking fabric libraries in the host. If your cluster has, for example, an infiniband network you still need to install OFED libraries into the container. Alternatively you could bind mount both Open MPI and networking libraries into the container, but this could run afoul of glib compatibility issues (its generally OK if the container glibc is more recent than the host, but not the other way around).
+\end{enumerate}
+
+Singularity utilizes a hybrid MPI container approach, this means that MPI must exist both inside and outside the container. \newline
+
+There are some important considerations to work with MPI:
+\begin{itemize}
+\item OpenMPI must be newer of equal to the version inside the container.
+\item To support infiniband, the container must support it.
+\item To support PMI, the container must support it.
+\item Very little (if any) performance penalty has been observed.
+  \begin{itemize}
+  \item MPI/Singularity invocation pathway\footnote{OpenMPI compatibility}:
+    \begin{enumerate}
+    \item From shell (or resource manager) mpirun gets called
+    \item mpirun forks and exec orte daemon
+    \item Orted process creates PMI
+    \item Orted forks == to the number of process per node requested
+    \item Orted children exec to original command passed to mpirun (Singularity)
+    \item Each Singularity execs the command passed inside the given container
+    \item Each MPI program links in the dynamic Open MPI libraries (ldd)
+    \item Open MPI libraries continue to open the non-ldd shared libraries (dlopen)
+    \item Open MPI libraries connect back to original orted via PMI
+    \item All non-shared memory communication occurs through the PMI and then to local interfaces (e.g. InfiniBand)
+    \end{enumerate}
+  \end{itemize}
+\end{itemize}
+
+
+\subsection{Container Operating System and distribution}
+At first, what was intended to do was to obtain different Linux distributions in each container, with different Open MPI versions in their repositories. The following commands were employed to know the available Open MPI version for each container:
+
+\begin{lstlisting}[language=bash,caption={Open MPI versions check commands}]
+apt-cache policy openmpi-common
+apt-get install devscripts && rmadison openmpi-common
+\end{lstlisting}
+
+The difference between \verb|apt-cache| and \verb|rmadison| is that \verb|apt-cache| shows only the information known to the system (but can be used offline) while \verb|rmadison| shows all versions of available packages. Thank to that, it is possible to check if some Open MPI is already installed on a container by default or not, and the Open MPI versions available on its repositories. This allow a simple installation with aptitude, whenever the package manager is APT.
+For example, for a Kali-based container:
+\begin{lstlisting}[language=bash,caption={Open MPI versions available for Kali}]
+rmadison openmpi-common 
+openmpi-common | 1.4.5-1    | oldoldstable       | all
+openmpi-common | 1.6.5-9.1  | oldstable-kfreebsd | all
+openmpi-common | 2.0.2-2    | stable             | all
+openmpi-common | 2.1.1-6    | testing            | all
+openmpi-common | 2.1.1-6    | unstable           | all
+\end{lstlisting}
+
+In this example, Open MPI versions 2.0.2 and 2.1.1 are available, so we can install them easily (e.g. \verb|apt-get install openmpi-common/2.1.1|). Multiple distributions were proved, like Debian, Ubuntu, Kali or Fedora. However, because the availability of the different versions of Open MPI in the official repositories was not as varied as expected, the approach was changed. \newline
+
+What was done in the final approach was to prepare different containers with exactly the same Operating System and installed on each one a different version of Open MPI, but this time, downloaded from the Open MPI official page. The selected distribution was Ubuntu 16.04.2 LTS (Ubuntu Xenial) because it is the current distribution provided by the Docker Hub if a Ubuntu container is requested (without indicating the version).
+The way Open MPI is downloaded and installed was automatized in a bash script ...
+
+\subsection{Available compilers}
+Adding a new variable to the problem, the compiler employed to compile the different applications and tests must be taken into account. The cluster has a good battery of different compilers, that is:
+\begin{itemize}
+\item GNU compilers
+  \begin{itemize}
+  \item gcc/5.3.0
+  \item gcc/6.1.0
+  \item gcc/6.3.0
+  \end{itemize}
+\item Intel compilers
+  \begin{itemize}
+  \item intel/2016
+  \item intel/2017
+  \end{itemize}
+\end{itemize}
+
+Changing to the compiler employed into the containers, it was that one which is included per default with the selected distribution, that is it: \verb|5.4.0-6ubuntu1~16.04.4| (gcc/5.4.0).
+
+\subsection{PMI}
+TODO.
+
+\hr
+
+Then, what it is expected is some conflicts with some of these named variables and technologies. E.g. an application works properly under GNU compilers but not under Intel ones. This will be analyze in the following sections.
+
+\section{Environment study}
+Now all variables have been presented, we will present the environment study in a more specific way.
+
+Six containers were created in total. Five of them have Open MPI installed, while the last one was configured with Intel MPI inside. All them make use of Ubuntu 16.04.2 LTS (Ubuntu Xenial), downloaded from the Docker Hub. The creation and configuration of the containers with Open MPI was completely automatized, making use of a bash script and the bootstrap definition files. By contrast, the container with Intel MPI required a much more manual installation, because of the installation process required by this software.
+
+For a clearer and more concise language, from now on, whenever we refer to containers with Open MPI inside, we will do it with the following nomenclature: container ompi/Open MPI version. E.g. if we are talking about a Ubuntu 16.04.2 LTS (Ubuntu Xenial) container with Open MPI version 1.10.2, we will just call it: container ompi/1.10.2. In case of Intel MPI, the nomenclature will be changed to container impi/Intel MPI version (e.g. container impi/2017).
+
+That from the container side. Changing to the outside values, we already know that the cluster is a Red Hat Enterprise Linux Server release 6.7, which have different Open MPI and Intel MPI versions installed thanks to the \textit{EasyBuild} software. So, every time we want to talk about an external configuration that make use of a concrete version of Open MPI or Intel MPI we will call it external ompi/version or external impi/version.
+
+Then, different approaches will be made in order to arrive at a solution that allows the use of different versions of MPI libraries inside and outside the container. We will focus out attention on the ompi configurations, as it is a more standardized configuration, but some tests with impi configurations will be done too.
+
+Understanding a little more the number of test needed for every approach we can see the table below.
 
 \begin{table}[h]
 \centering
@@ -160,7 +353,7 @@ something...
 \label{my-label}
 \begin{tabular}{|r|c|c|c|c|c|}
 \hline
-\multicolumn{1}{|c|}{Container OpenMPI version} & \multicolumn{5}{c|}{FT2 OpenMPI version} \\ \hline
+\multicolumn{1}{|c|}{Container ompi/} & \multicolumn{5}{c|}{External ompi/} \\ \hline
 \multicolumn{1}{|c|}{} & 1.10.2 & 2.0.0 & 2.0.1 & 2.0.2 & 2.1.1 \\ \hline
 1.10.2 &  &  &  &  &  \\ \hline
 2.0.0 &  &  &  &  &  \\ \hline
@@ -170,17 +363,7 @@ something...
 \end{tabular}
 \end{table}
 
-
-\subsection{Available compilers}
-gnu, intel...
-\begin{figure}[H]
-\centering\includegraphics[width=0.6\linewidth]{cubo-pruebas-sin-nombre-final}
-\caption{Figure caption}
-\end{figure}
-\begin{figure}[H]
-\centering\includegraphics[width=0.6\linewidth]{desglose-cubo}
-\caption{Figure caption}
-\end{figure}
+As we deal with five different versions of Open MPI, their mixtures will give rise to 25 tests. But in addition, we must execute the same under different compilers, since they can be a determinant variable, and its implication will not be clear until the tests are realized. Not all external ompi configurations have the same compilers available, but they almost always have at least two different compilers available.
 
 \section{Approaches of the problem and development}
 \label{sec:approach}
@@ -637,6 +820,10 @@ Recovered from: \url{<https://hub.docker.com/>}
 \bibitem{singularityhub}
   Singularity Hub [Internet] [Quoted August 04, 2017]. 
 Recovered from: \url{<https://singularityhub.com/>}
+
+\bibitem{mpi-singularity}
+  Singularity on HPC [Internet] - Singularity [Quoted August 04, 2017]. 
+Recovered from: \url{<http://singularity.lbl.gov/docs-hpc>}
 
 \bibitem{osu-microbenchmarks}
   OSU Micro Benchmarks [Internet] - MVAPICH: MPI over InfiniBand, Omni-Path, Ethernet/iWARP, and RoCE [Quoted July 24, 2017]. 
