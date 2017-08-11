@@ -264,7 +264,7 @@ Singularity utilizes a hybrid MPI container approach, this means that MPI must e
 There are some important considerations to work with MPI:
 \begin{itemize}
 \item OpenMPI must be newer of equal to the version inside the container.
-\item To support infiniband, the container must support it.
+\item To support InfiniBand, the container must support it.
 \item To support PMI, the container must support it.
 \item Very little (if any) performance penalty has been observed.
   \begin{itemize}
@@ -310,7 +310,7 @@ What was done in the final approach was to prepare different containers with exa
 The way Open MPI is downloaded and installed was automatized in a bash script ...
 
 \subsection{Available compilers}
-Adding a new variable to the problem, the compiler employed to compile the different applications and tests must be taken into account. The cluster has a good battery of different compilers, that is:
+Adding a new variable to the problem, the employed compiler must be taken into account. The cluster has a good battery of different compilers, that is:
 \begin{itemize}
 \item GNU compilers
   \begin{itemize}
@@ -337,11 +337,13 @@ Then, what it is expected is some conflicts with some of these named variables a
 \section{Environment study}
 Now all variables have been presented, we will present the environment study in a more specific way.
 
-Six containers were created in total. Five of them have Open MPI installed, while the last one was configured with Intel MPI inside. All them make use of Ubuntu 16.04.2 LTS (Ubuntu Xenial), downloaded from the Docker Hub. The creation and configuration of the containers with Open MPI was completely automatized, making use of a bash script and the bootstrap definition files. By contrast, the container with Intel MPI required a much more manual installation, because of the installation process required by this software.
+Six containers were created in total. Five of them have Open MPI installed, while the last one was configured with Intel MPI inside. All them make use of \textit{Ubuntu 16.04.2 LTS (Ubuntu Xenial)}, downloaded from the Docker Hub. The creation and configuration of the containers with Open MPI was completely automatized, making use of a bash script and the bootstrap definition files. By contrast, the container with Intel MPI required a much more manual installation, because of the installation process required by this software.
 
-For a clearer and more concise language, from now on, whenever we refer to containers with Open MPI inside, we will do it with the following nomenclature: container ompi/Open MPI version. E.g. if we are talking about a Ubuntu 16.04.2 LTS (Ubuntu Xenial) container with Open MPI version 1.10.2, we will just call it: container ompi/1.10.2. In case of Intel MPI, the nomenclature will be changed to container impi/Intel MPI version (e.g. container impi/2017).
+Remember that Singularity does not magically allow containers to connect to networking fabric libraries in the host. As the cluster makes use of an InfiniBand network, it will be needed to install OFED libraries into the container. So, all the needed libraries will be installed during the creation process of the containers. That is, it is important to specify all this software downloading, installation and configuration into the bootstrap configuration file.
 
-That from the container side. Changing to the outside values, we already know that the cluster is a Red Hat Enterprise Linux Server release 6.7, which have different Open MPI and Intel MPI versions installed thanks to the \textit{EasyBuild} software. So, every time we want to talk about an external configuration that make use of a concrete version of Open MPI or Intel MPI we will call it external ompi/version or external impi/version.
+For a clearer and more concise language, from now on, whenever we refer to containers with Open MPI inside, we will do it with the following nomenclature: container ompi/Open MPI version. E.g. if we are talking about a \textit{Ubuntu 16.04.2 LTS (Ubuntu Xenial)} container with Open MPI version 1.10.2, we will just call it: container ompi/1.10.2. In case of Intel MPI, the nomenclature will be changed to container impi/Intel MPI version (e.g. container impi/2017).
+
+That from the container side. Changing to the outside values, we already know that the cluster is a \textit{Red Hat Enterprise Linux Server release 6.7}, which have different Open MPI and Intel MPI versions installed. So, every time we want to talk about an external configuration that make use of a concrete version of Open MPI or Intel MPI we will call it external ompi/version or external impi/version.
 
 Then, different approaches will be made in order to arrive at a solution that allows the use of different versions of MPI libraries inside and outside the container. We will focus out attention on the ompi configurations, as it is a more standardized configuration, but some tests with impi configurations will be done too.
 
@@ -363,27 +365,44 @@ Understanding a little more the number of test needed for every approach we can 
 \end{tabular}
 \end{table}
 
-As we deal with five different versions of Open MPI, their mixtures will give rise to 25 tests. But in addition, we must execute the same under different compilers, since they can be a determinant variable, and its implication will not be clear until the tests are realized. Not all external ompi configurations have the same compilers available, but they almost always have at least two different compilers available.
+As we deal with five different versions of Open MPI, their mixtures will give rise to 25 tests. But in addition, we must execute the same under different compilers, since they can be a determinant variable, and its implication will not be clear until the tests are realized. Not all external ompi configurations have the same compilers available, but they almost always have at least two different compilers. Also, we must repeat these test at least twice, one execution in just one node, and the other one in multiple nodes. This means that each approach will take approximately 100 executions. It is important to automate the process as much as possible because it is a tedious and repetitive task.
+
+Finally, it is important to specify that on the Finis Terrae II there are two different process managers. The first one is \textit{Slurm}\cite{slurm}, a resource manager, which include the \textit{srun} tool. \textit{Srun} is a tool employed to manage the resources and the processes. Besides, OpenMPI provide \textit{mpirun} as process manager, but it has not the same functionalities than \textit{srun}.
 
 \section{Approaches of the problem and development}
 \label{sec:approach}
-Reference to \nameref{sec:mixing} \newline
-Reference to \nameref{sec:linking}
+\subsection{Tests}
+The selected application for the ompi tests was \verb|"ring"|\cite{ring}· It is one of the most basics applications, what ensures the correct environment performance, as well as Open MPI installation is working properly.
 
-\section{Mixing MPI versions}
-\label{sec:mixing}
-\paragraph{Trying 'by default'}
-\subparagraph{Test apps: ring, hellowo}
-hellowo fue empleado en las de compilador intel
+It works as follow: The ring program initializes a value from process zero, and the value is passed around every single process. The program terminates when process zero receives the value from the last process. First process makes sure that it has completed its first send before it tries to receive the value from the last process. All of the other processes simply call \verb|MPI_Recv| (receiving from their neighboring lower process) and then \verb|MPI_Send| (sending the value to their neighboring higher process) to pass the value along the ring. \verb|MPI_Send| and \verb|MPI_Recv| will block until the message has been transmitted. Because of this, the \verb|printfs| should occur by the order in which the value is passed.  \newline
 
-\subsection{mpi run}
+For the impi tests, Intel MPI Library\cite{impi} comes with a set of source files for simple MPI programs that enable to test the installation. Test program sources are available for all supported programming languages and are located at \verb|<installdir>/test|, where \verb|<installdir>| is \verb|/opt/intel/compilers_and_libraries_<version>.x.xxx/linux/mpi| by default. The installation directory for the impi containers was the default one, replacing version for 2017.4.196. The source files available into this directory are:
+
+\begin{lstlisting}[language=bash,caption={Intel MPI source files for simple MPI programs}]
+.
+|-- test.c
+|-- test.cpp
+|-- test.f
+|-- test.f90
+|-- Test.java
+\end{lstlisting}
+
+Since the Open MPI test program (\verb|ring_c.c|) was written in C, the C version of the Intel test program was also chosen. To compile the selected program, we use the Intel MPI compiler, available on \verb|/opt/intel/compilers_and_libraries_2017.4.196/linux/bin/intel64/icc|. The program functioning is the simplest possible: a \verb|printf| saying Hello World in a for loop, which includes every functional unity.
+
+\subsubsection{Mixing MPI versions}
+The first approach was the more intuitive and expected. That is, try a simple application that make use of MPI, mixing the Open MPI and Intel MPI inside and outside the container. For this first approach, the selected process manager was \textit{mpirun}.
+
+\paragraph{MPIRUN}
+\subparagraph{}
+The first test done was the mix of the different ompi possibilities, including the different available compilers. For these executions, the obtained results were a one-to-one version compatibility. That is, for the properly program execution, the version of Open MPI must match exactly inside and outside the container. However, the same conclusion was obtained for the different conjugations with the different compilers available. This means that, until proven otherwise, the compiler will not be in itself a limiting factor. In addition, for this particular environment, the results were the same for single node cases as for multiple node cases. Results can be visualized on table \nameref{test1}. 
+
 \begin{table}[H]
 \centering
-\caption{mpirun mixing different compilers, 1 and 2 nodes}
-\label{my-label}
+\caption{MPIRUN mixing different compilers, 1 and 2 nodes. Open MPI tests.}
+\label{test1}
 \begin{tabular}{|r|c|c|c|c|c|}
 \hline
-\multicolumn{1}{|c|}{Container OpenMPI version} & \multicolumn{5}{c|}{FT2 OpenMPI version} \\ \hline
+\multicolumn{1}{|c|}{Container ompi/} & \multicolumn{5}{c|}{External ompi/} \\ \hline
 \multicolumn{1}{|c|}{} & 1.10.2 & 2.0.0 & 2.0.1 & 2.0.2 & 2.1.1 \\ \hline
 1.10.2 & \color[HTML]{006600}{\cmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} \\ \hline
 2.0.0 & \textcolor{red}{\xmark} & \color[HTML]{006600}{\cmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} \\ \hline
@@ -393,10 +412,12 @@ hellowo fue empleado en las de compilador intel
 \end{tabular}
 \end{table}
 
+The same configuration was employed to prove the impi possible configurations. In this case, the selected program was \verb|test.c| instead of \verb|ring_c.c|. Due to some complications to obtain a containerized impi/5.1 only a container impi/2017 could be tested. The obtained results were the same than witch the impi tests, only one-to-one matches worked properly. This can be observed on table \nameref{test2}
+
 \begin{table}[H]
 \centering
-\caption{mpirun Intel 1 and 2 nodes, hellowo}
-\label{my-label}
+\caption{MPIRUN mixing different compilers, 1 and 2 nodes. Intel MPI tests.}
+\label{test2}
 \begin{tabular}{|r|c|c|}
 \hline
 \multicolumn{1}{|c|}{Container Intel MPI version} & \multicolumn{2}{c|}{FT2 Intel MPI version} \\ \hline
@@ -406,11 +427,19 @@ hellowo fue empleado en las de compilador intel
 \end{tabular}
 \end{table}
 
-\subsection{srun (slurm)}
+\hr
+Note: Due to the difficulties to prove the impi configurations, from this moment, only test with Open MPI will be done. 
+
+
+\paragraph{SRUN}
+\subparagraph{}
+Continuing the first presented approach, now we will execute the exactly same tests, but under the \textit{srun} process manager.
+
+As could be expected, results were not the same. The big difference is that under the \textit{srun} process manager, the multiple nodes executions were not successful. Only executions under one node and with one-to-one matches for the Open MPI versions inside and outside the container were successful. This behavior can be observed on table \nameref{test3}
 \begin{table}[H]
 \centering
-\caption{srun front FT2, different compilers, 1 node}
-\label{my-label}
+\caption{SRUN mixing different compilers, 1 node. Open MPI tests.}
+\label{test3}
 \begin{tabular}{|r|c|c|c|c|c|}
 \hline
 \multicolumn{1}{|c|}{Container OpenMPI version} & \multicolumn{5}{c|}{FT2 OpenMPI version} \\ \hline
@@ -423,10 +452,11 @@ hellowo fue empleado en las de compilador intel
 \end{tabular}
 \end{table}
 
+The results for multiple nodes can be observed on table \nameref{test4} When this test was done, false positives were obtained for every one-to-one match. In those cases, when the ring program was executed, it did an execution for every node, but none of them could "see" the others. Because of this reason, the ring call was executed as many instances as nodes were indicated, having each of them just one process per ring. So, parallel communication was not obtained.
 \begin{table}[H]
 \centering
-\caption{srun front FT2, different compilers, 2 nodes}
-\label{my-label}
+\caption{SRUN mixing different compilers, 2 nodes. Open MPI tests.}
+\label{test4}
 \begin{tabular}{|r|c|c|c|c|c|}
 \hline
 \multicolumn{1}{|c|}{Container OpenMPI version} & \multicolumn{5}{c|}{FT2 OpenMPI version} \\ \hline
@@ -438,14 +468,28 @@ hellowo fue empleado en las de compilador intel
 2.1.1 & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} \\ \hline
 \end{tabular}
 \end{table}
-When this test was done, false positives were obtained for every one-to-one match. In those cases, when the ring program was executed, it did an execution for every node, but none of them could "see" the others. Because of this reason, the ring call was executed as many instances as nodes were indicated, having each of them just one process per ring. So, parallel communication was not obtained.
 
+\hr
+Remember there were some important considerations to work with MPI:
+\begin{itemize}
+  \item Open MPI must be newer of equal to the version inside the container.
+  \item To support InfiniBand, the container must support it.
+  \item To support PMI, the container must support it.
+\end{itemize}
 
-\section{Binding libraries and its dependencies}
+We have made sure to meet all these requirements to obtain the correct operation of MPI, as indicated by the Singularity team. All containers support InfiniBand and PMI, thanks to the OFED libraries installed during the container creation process. Theoretically, under this environment, all tests made under ompi containers with a lower Open MPI version than the cluster Open MPI version employed in each moment, should work properly. However, attending to the results, we can ensure that after a series of practical tests, interversion MPI compatibility can not be obtained making simple mixes.
+
+After this, the simple mixing approach was abandoned, and we turned into a new approach.
+
+\subsubsection{Binding libraries and its dependencies}
 \label{sec:linking}
-\subsection{mpi run}
-\subsection{srun (slurm)}
-\paragraph{ldd}
+
+Since the previous approach, which consists of simply mixing the different MPI versions did not work, we will give it a twist and we will apply a completely different approach. Singularity containers allow us to bind some files and folders as we want to from the host. So, we will try to bind all the Open MPI needed libraries and its dependencies. Then, what we are trying to do at all is to employ exactly the same version of Open MPI inside and outside the container, what we already know it works properly. Its advantage is that it will be absolutely transparent for the final user. When a container arrive, it will be executed into a environment which will bind its Open MPI libraries to make use of the cluster MPI libraries, instead of their own. In counterpart, the big and obvious disadvantage is that the container philosophy will be lost. Containers will pass from use their own resources to use those what belong to the host, what supposes a portability lost. With this I mean that if we want to use this approach on a different cluster, we must adjust the libraries binding for every unique case. However, as we execute this solution under the Finis Terrae II, it could suppose a solution that contributes with a high level of flexibility and portability. That is, the cluster should accept a big and varied quantity of containers which make use of MPI.
+
+Browsing the Singularity web we can found suggestion of how the binding should be done\cite{binding}. Although this recommendations are made for GPU drivers, Open MPI binding is named too as an alternative configuration solution. The explication is not very exhaustive, but at least it is considered by the Singularity team. Several test must be done in order to achieve the final binding solution.
+
+\paragraph{SRUN}
+\subparagraph{ldd}
 \subparagraph{Tests apps: ring, hellowo}
 
 \begin{table}[H]
@@ -456,7 +500,7 @@ When this test was done, false positives were obtained for every one-to-one matc
 \hline
 \multicolumn{1}{|c|}{Container OpenMPI version} & \multicolumn{5}{c|}{FT2 OpenMPI version} \\ \hline
 \multicolumn{1}{|c|}{} & 1.10.2 & 2.0.0 & 2.0.1 & 2.0.2 & 2.1.1 \\ \hline
-1.10.2 & \color[HTML]{006600}{\cmark}  & \color[HTML]{FF4F00}{\danger} & \color[HTML]{FF4F00}{\danger} & \color[HTML]{FF4F00}{\danger} & \color[HTML]{FF4F00}{\danger} \\ \hline
+1.10.2 & \color[HTML]{006600}{\cmark}  & \color{green}{\danger} & \color{green}{\danger} & \color{green}{\danger} & \color{green}{\danger} \\ \hline
 2.0.0 & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} \\ \hline
 2.0.1 & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} \\ \hline
 2.0.2 & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} \\ \hline
@@ -824,6 +868,22 @@ Recovered from: \url{<https://singularityhub.com/>}
 \bibitem{mpi-singularity}
   Singularity on HPC [Internet] - Singularity [Quoted August 04, 2017]. 
 Recovered from: \url{<http://singularity.lbl.gov/docs-hpc>}
+
+\bibitem{ring}
+  ring\_c.c code [Internet] - Open MPI (open-mpi) Github repository  [Quoted August 10, 2017]. 
+Recovered from: \url{<https://raw.githubusercontent.com/open-mpi/ompi/master/examples/ring_c.c>}
+
+\bibitem{impi}
+  Intel® MPI Library [Internet] - Intel Developer Zone  [Quoted August 10, 2017]. 
+Recovered from: \url{<https://software.intel.com/en-us/intel-mpi-library>}
+
+\bibitem{slurm}
+  Slurm Workload Manager Documentation [Internet] - Slurm Workload Manager [Quoted August 11, 2017]. 
+Recovered from: \url{<https://slurm.schedmd.com/>}
+
+\bibitem{binding}
+  Using Host libraries: GPU drivers and OpenMPI BTLs [Internet] - Singularity [Quoted August 11, 2017]. 
+Recovered from: \url{<http://singularity.lbl.gov/tutorial-gpu-drivers-open-mpi-mtls>}
 
 \bibitem{osu-microbenchmarks}
   OSU Micro Benchmarks [Internet] - MVAPICH: MPI over InfiniBand, Omni-Path, Ethernet/iWARP, and RoCE [Quoted July 24, 2017]. 
