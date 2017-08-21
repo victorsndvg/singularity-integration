@@ -8,6 +8,7 @@
 \usepackage[colorinlistoftodos]{todonotes}
 \usepackage{nameref}
 \usepackage{pifont}
+\usepackage{dirtytalk}
 \usepackage{hyperref}
 \usepackage{indentfirst}
 \usepackage{lipsum}
@@ -25,7 +26,7 @@
 \newcommand{\xmark}{\ding{55}}%
 \newcommand\hr{\par\vspace{-.5\ht\strutbox}\noindent\hrulefill\par}
 
-\title{MPI interversion compability with Singularity containers over Finis Terrae II using an InfiniBand network}
+\title{Title}
 
 \author{Manuel Simon Novoa}
 
@@ -41,6 +42,19 @@ Enter a short summary here. What topic do you want to investigate and why? What 
 \section{Introduction 5 lines to max 1/2 page}
 \label{sec:introduction}
 \newpage
+
+\section{Project introduction}
+This document, as well as all tests and obtained conclusions belong to the european collaborative project \textit{"Mathematical Modelling, Simulation and Optimization for Societal Challenges with Scientific Computing" (MSO4SC)}. A project overview could be: provide mathematical technologies and its applications for solution of societal challenges as service through an HPC oriented cloud e-infrastructure. Going into more detail, the project is defined as:\newline
+
+\say{The challenges of society show rising complexity and their solution process increasingly requires a holistic approach. It is necessary to provide decision makers with tools that allow long-term risk analysis, improvements or even optimization and control. One of the key technologies in this process is the use of mathematical Modelling, Simulation and Optimisation (MSO) methods, which have proven effective tools for solving many problems, e.g. realistic prediction of wind fields, solar radiation, air pollution and forest fires, prediction of climate change, improving the filtration process for drinking water treatment and optimization methods for intensity-modulated radiation therapy.
+
+These methods are highly complex and are typically processed via the most modern tools of ICT including high performance computing and access to big data bases and usually need support of skilled experts, which often are not available, in particular in small and medium enterprises.
+
+To improve this situation, the pan-European network EU-MATHS-IN (European Service Network of Mathematics for Industry and Innovation) has been founded from national networks containing leading research centres of Europe with high excellence of MSO and ICT.
+
+The major objective of this proposal is to construct an e-infrastructure that provides, in a user-driven, integrative way, tailored access to the necessary services, resources and even tools for the fast prototyping, providing the service producers with the mathematical frameworks as well.
+
+The e-infrastructure consists of an integrated MSO application catalogue containing models, software, validation and benchmark and the MSOcloud: a user friendly cloud infrastructure for selected MSO applications and developing frameworks from the catalogue. This will reduce the ‘time-to-market’ for consultants working in the above-mentioned societal challenges.}
 
 \section{Architecture description}
 \label{sec:architecture}
@@ -76,7 +90,7 @@ Module files allow managing the loading and unloading of environments to run a p
 
 Finally, the hardware and software ecosystem of an HPC production infrastructure is different than a development ecosystem, and usually a lot of unexpected issues appear while integrating and deploying the complex environment of mathematical frameworks. To integrate the whole environment of each software project in a production infrastructure is usually hard and time consuming.
 
-Also,as this software is evolving very fast and using the latest technologies and features of the compilers, new versions are provided very frequently. This puts a lot of pressure on the software support team of the infrastructures. Even though there are some tools that could help in this process, like \textit{EasyBuild}\cite{easybuild}, an application to manage software on High Performance Computing (HPC) systems in an efficient way.
+Also, as this software is evolving very fast and using the latest technologies and features of the compilers, new versions are provided very frequently. This puts a lot of pressure on the software support team of the infrastructures. Even though there are some tools that could help in this process, like \textit{EasyBuild}\cite{easybuild}, an application to manage software on High Performance Computing (HPC) systems in an efficient way.
 
 So, what is intended to do is to find a simple and efficient way that allow to deploy and integrate that complex software with its dependencies. The goal is to reduce at maximum at possible the previously named time consuming. Most importantly, because end users can come up with endless combinations of software and dependencies, it is to achieve maximum portability, but without losing the computational capacity of the system.
 
@@ -131,7 +145,7 @@ This work-flow allow an automatized integration and deployment, deriving in a ve
 
 \section{Involved technologies}
 \label{sec:technologies}
-The hardware under all the tests and executions were executed were already described in section \nameref{sec:architecture}. Now it is turn to describe all the involved software needed to perform the solution, as well as all the implications they could have.
+The hardware under all tests and executions were executed were already described in section \nameref{sec:architecture}. Now it is turn to describe all the involved software needed to perform the solution, as well as all the implications they could have.
 
 \subsection{Host Operating System and kernel}
 The Finis Terrae II host machine have a \textbf{\textit{Red Hat Enterprise Linux Server (RHEL) release 6.7 (Santiago)}}, with a kernel version \verb|Linux 2.6.32-573.12.1.el6.x86_64|. Fortunately, this kernel version is compatible with Singularity.
@@ -173,7 +187,7 @@ Because Singularity is based on container principals, when an application is run
 
 Singularity automatically tries to resolve directory mounts such that things will just work and be portable with whatever environment you are running on. This means that /tmp and /var/tmp are automatically shared into the container as is /home. Additionally, if you are in a current directory that is not a system directory, Singularity will also try to bind that to your container.
 
-Note that there is a caveat in that a directory must already exist within your container to serve as a mount point. If that directory does not exist, Singularity will not create it for you! You must do that.
+Note that depending on kernel version, if Singularity version is below 2.3.1, there is a caveat in that a directory must already exist within your container to serve as a mount point. If that directory does not exist, Singularity will not create it for you! You must do that.
 
 \paragraph{Resources sharing}
  \subparagraph{}
@@ -256,15 +270,7 @@ The Open MPI/Singularity workflow works as follows:
 
 This entire process happens behind the scenes, and from the user's perspective running via MPI is as simple as just calling mpirun on the host as they would normally. \newline
 
-To achieve proper containerized Open MPI support, Open MPI version 2.1 should be used. However, Singularity team explain that there are  three caveats:
-
-\begin{enumerate}
-\item     Open MPI 1.10.x may work but we expect you will need exactly matching version of PMI and Open MPI on both host and container (the 2.1 series should relax this requirement).
-\item     Open MPI 2.1.0 has a bug affecting compilation of libraries for some interfaces (particularly Mellanox interfaces using libmxm are known to fail). If your in this situation you should use the master branch of Open MPI rather than the release.
-\item     Using Open MPI 2.1 does not magically allow your container to connect to networking fabric libraries in the host. If your cluster has, for example, an infiniband network you still need to install OFED libraries into the container. Alternatively you could bind mount both Open MPI and networking libraries into the container, but this could run afoul of glib compatibility issues (its generally OK if the container glibc is more recent than the host, but not the other way around).
-\end{enumerate}
-
-Singularity utilizes a hybrid MPI container approach, this means that MPI must exist both inside and outside the container. \newline
+Singularity makes use of a hybrid MPI container approach, this means that MPI must exist both inside and outside the container. \newline
 
 There are some important considerations to work with MPI:
 \begin{itemize}
@@ -289,6 +295,13 @@ There are some important considerations to work with MPI:
   \end{itemize}
 \end{itemize}
 
+To achieve proper containerized Open MPI support, Open MPI version 2.1 should be used. However, Singularity team explain that there are  three caveats:
+
+\begin{enumerate}
+\item     Open MPI 1.10.x may work but we expect you will need exactly matching version of PMI and Open MPI on both host and container (the 2.1 series should relax this requirement).
+\item     Open MPI 2.1.0 has a bug affecting compilation of libraries for some interfaces (particularly Mellanox interfaces using libmxm are known to fail). If your in this situation you should use the master branch of Open MPI rather than the release.
+\item     Using Open MPI 2.1 does not magically allow your container to connect to networking fabric libraries in the host. If your cluster has, for example, an infiniband network you still need to install OFED libraries into the container. Alternatively you could bind mount both Open MPI and networking libraries into the container, but this could run afoul of glib compatibility issues (its generally OK if the container glibc is more recent than the host, but not the other way around).
+\end{enumerate}
 
 \subsection{Container Operating System and distribution}
 At first, what was intended to do was to obtain different Linux distributions in each container, with different Open MPI versions in their repositories. The following commands were employed to know the available Open MPI version for each container:
@@ -298,7 +311,7 @@ apt-cache policy openmpi-common
 apt-get install devscripts && rmadison openmpi-common
 \end{lstlisting}
 
-The difference between \verb|apt-cache| and \verb|rmadison| is that \verb|apt-cache| shows only the information known to the system (but can be used offline) while \verb|rmadison| shows all versions of available packages. Thank to that, it is possible to check if some Open MPI is already installed on a container by default or not, and the Open MPI versions available on its repositories. This allow a simple installation with aptitude, whenever the package manager is APT.
+The difference between \verb|apt-cache| and \verb|rmadison| is that \verb|apt-cache| shows only the information known to the system (but can be used offline) while \verb|rmadison| shows all versions of available packages from the official repositories. Thank to that, it is possible to check if some Open MPI is already installed on a container by default or not, and the Open MPI versions available on its repositories. This allow a simple installation with aptitude, whenever the package manager is APT.
 For example, for a Kali-based container:
 \begin{lstlisting}[language=bash,caption={Open MPI versions available for Kali}]
 rmadison openmpi-common 
@@ -315,7 +328,7 @@ What was done in the final approach was to prepare different containers with exa
 The way Open MPI is downloaded and installed was automatized in a bash script ...
 
 \subsection{Available compilers}
-Adding a new variable to the problem, the employed compiler must be taken into account. The cluster has a good battery of different compilers, that is:
+Adding a new variable to the problem, the employed compiler in the cluster must be taken into account. The cluster has a good battery of different compilers, that is:
 \begin{itemize}
 \item GNU compilers
   \begin{itemize}
@@ -342,7 +355,7 @@ Then, what it is expected is some conflicts with some of these named variables a
 \section{Environment study}
 Now all variables have been presented, we will present the environment study in a more specific way.
 
-Six containers were created in total. Five of them have Open MPI installed, while the last one was configured with Intel MPI inside. All them make use of \textit{Ubuntu 16.04.2 LTS (Ubuntu Xenial)}, downloaded from the Docker Hub. The creation and configuration of the containers with Open MPI was completely automatized, making use of a bash script and the bootstrap definition files. By contrast, the container with Intel MPI required a much more manual installation, because of the installation process required by this software.
+Six containers were created. Five of them have Open MPI installed, while the last one was configured with Intel MPI inside. All them make use of \textit{Ubuntu 16.04.2 LTS (Ubuntu Xenial)}, downloaded from the Docker Hub. The creation and configuration of the containers with Open MPI was completely automatized, making use of a bash script and the bootstrap definition files. By contrast, the container with Intel MPI required a much more manual installation, because of the installation process required by this software.
 
 Remember that Singularity does not magically allow containers to connect to networking fabric libraries in the host. As the cluster makes use of an InfiniBand network, it will be needed to install OFED libraries into the container. So, all the needed libraries will be installed during the creation process of the containers. That is, it is important to specify all this software downloading, installation and configuration into the bootstrap configuration file.
 
@@ -350,7 +363,7 @@ For a clearer and more concise language, from now on, whenever we refer to conta
 
 That from the container side. Changing to the outside values, we already know that the cluster is a \textit{Red Hat Enterprise Linux Server release 6.7}, which have different Open MPI and Intel MPI versions installed. So, every time we want to talk about an external configuration that make use of a concrete version of Open MPI or Intel MPI we will call it external ompi/version or external impi/version.
 
-Then, different approaches will be made in order to arrive at a solution that allows the use of different versions of MPI libraries inside and outside the container. We will focus out attention on the ompi configurations, as it is a more standardized configuration, but some tests with impi configurations will be done too.
+Then, different approaches will be made in order to arrive at a solution that allows the use of different versions of MPI libraries inside and outside the container. We will focus our attention on the ompi configurations, as it is a more standardized configuration, but some tests with impi configurations will be done too.
 
 Understanding a little more the number of test needed for every approach we can see the table below.
 
@@ -372,12 +385,12 @@ Understanding a little more the number of test needed for every approach we can 
 
 As we deal with five different versions of Open MPI, their mixtures will give rise to 25 tests. But in addition, we must execute the same under different compilers, since they can be a determinant variable, and its implication will not be clear until the tests are realized. Not all external ompi configurations have the same compilers available, but they almost always have at least two different compilers. Also, we must repeat these test at least twice, one execution in just one node, and the other one in multiple nodes. This means that each approach will take approximately 100 executions. It is important to automate the process as much as possible because it is a tedious and repetitive task.
 
-Finally, it is important to specify that on the Finis Terrae II there are two different process managers. The first one is \textit{Slurm}\cite{slurm}, a resource manager, which include the \textit{srun} tool. \textit{Srun} is a tool employed to manage the resources and the processes. Besides, OpenMPI provide \textit{mpirun} as process manager, but it has not the same functionalities than \textit{srun}.
+Finally, it is important to specify that on the Finis Terrae II we can use different process managers. One of them is the \textit{srun} tool, which is part of the \textit{Slurm}\cite{slurm} resources manager, already installed on the Finis Terrae II. \textit{Srun} is a tool employed to manage the resources and the processes. Besides, OpenMPI provide \textit{mpirun} as process manager, which offers similar functionalities than \textit{srun}, but they are more restricted.
 
 \section{Approaches of the problem and development}
 \label{sec:approach}
 \subsection{Tests}
-The selected application for the ompi tests was \verb|"ring"|\cite{ring}· It is one of the most basics applications, what ensures the correct environment performance, as well as Open MPI installation is working properly.
+The selected application for the ompi tests was \verb|"ring"|\cite{ring}· It is one of the most basics applications, what ensures a basic distributed communication employing MPI.
 
 It works as follow: The ring program initializes a value from process zero, and the value is passed around every single process. The program terminates when process zero receives the value from the last process. First process makes sure that it has completed its first send before it tries to receive the value from the last process. All of the other processes simply call \verb|MPI_Recv| (receiving from their neighboring lower process) and then \verb|MPI_Send| (sending the value to their neighboring higher process) to pass the value along the ring. \verb|MPI_Send| and \verb|MPI_Recv| will block until the message has been transmitted. Because of this, the \verb|printfs| should occur by the order in which the value is passed.  \newline
 
@@ -489,13 +502,100 @@ After this, the simple mixing approach was abandoned, and we turned into a new a
 \subsubsection{Binding libraries and its dependencies}
 \label{sec:linking}
 
-Since the previous approach, which consists of simply mixing the different MPI versions did not work, we will give it a twist and we will apply a completely different approach. Singularity containers allow us to bind some files and folders as we want to from the host. So, we will try to bind all the Open MPI needed libraries and its dependencies. Then, what we are trying to do at all is to employ exactly the same version of Open MPI inside and outside the container, what we already know it works properly. Its advantage is that it will be absolutely transparent for the final user. When a container arrive, it will be executed into a environment which will bind its Open MPI libraries to make use of the cluster MPI libraries, instead of their own. In counterpart, the big and obvious disadvantage is that the container philosophy will be lost. Containers will pass from use their own resources to use those what belong to the host, what supposes a portability lost. With this I mean that if we want to use this approach on a different cluster, we must adjust the libraries binding for every unique case. However, as we execute this solution under the Finis Terrae II, it could suppose a solution that contributes with a high level of flexibility and portability. That is, the cluster should accept a big and varied quantity of containers which make use of MPI.
+Since the previous approach, which consists of simply mixing the different MPI versions did not work, we will give it a twist and we will apply a completely different approach. Singularity containers allow us to bind some files and folders as we want to from the host. So, we will try to bind all the needed Open MPI libraries and its dependencies. Then, what we are trying to do at all is to employ exactly the same version of Open MPI inside and outside the container, what we already know it works properly. Its advantage is that it will be absolutely transparent for the final user. When a container arrive, it will be executed into a environment which will bind its Open MPI libraries to make use of the cluster MPI libraries, instead of their own. In counterpart, the big and obvious disadvantage is that the container philosophy will be lost. Containers will pass from use their own resources to use those what belong to the host, what supposes a portability lost. With this I mean that if we want to use this approach on a different cluster, we must adjust the libraries binding for every unique case. However, as we execute this solution under the Finis Terrae II, it could suppose a solution that contributes with a high level of flexibility and portability. That is, the cluster should accept a big and varied quantity of containers which make use of MPI.
 
 Browsing the Singularity web we can found suggestion of how the binding should be done\cite{binding}. Although this recommendations are made for GPU drivers, Open MPI binding is named too as an alternative configuration solution. The explication is not very exhaustive, but at least it is considered by the Singularity team. Several test must be done in order to achieve the final binding solution.
 
 \paragraph{SRUN}
-\subparagraph{ldd}
-\subparagraph{Tests apps: ring, hellowo}
+\subparagraph{}
+
+This approach was made under the \textit{srun} process manager. What was done was to employ the \verb|ldd| command, which prints shared object dependencies, with the applications what make use of Open MPI libraries. So, once dependencies were obtained, we observed them carefully. Then, making use of the Singularity binding option, we bind the host libraries where the container ones must be, forcing the containers to use these libraries instead of their owns. An extra preparation is needed in this approach. We need to create the folders where the bindings will be done, because Singularity will not automatic create them.
+
+The binding folders preparation starts with the creation of a folder architecture where there are included the folders where the bindings will be done as well as folders which will contain exactly the same content as the host important libraries.
+
+\begin{lstlisting}[language=bash,caption={Binding folders architecture}]
+host
+|-- lib64
+|   |-- tmp
+|   `-- tmp2
+|-- mpi
+|   `-- lib
+|       |-- ompi_1.X
+|       `-- ompi_2.X
+`-- usr
+    `-- lib64
+        |-- tmp
+        `-- tmp2
+\end{lstlisting}
+
+Looking at the folders architecture, we have copied the original host folders: \verb|/lib64|, \verb|/mpi/lib| and \verb|/usr/lib64|. The reason why there are two folders inside each of them (tmp and tmp2, or ompi\_1.X and ompi\_2.X) it is because several changes happen when the Open MPI version changed from 1.X to 2.X. Then, when a important dependency is found, the library is copied to the parent folder, that is where the binding is done.
+
+To understand better what was done in this approach, I will show a little example. This concrete example was done under a container ompi/2.0.1. First of all, we call ldd inside the container to find important Open MPI dependencies:
+
+\begin{lstlisting}[language=bash,caption={ldd example}]
+> ldd /usr/bin/ring
+	linux-vdso.so.1 =>  (0x00007fff3edb4000)
+	libmpi.so.20 => /usr/lib/libmpi.so.20 (0x00007f6407009000)
+	libpthread.so.0 => /lib/x86_64-linux-gnu/libpthread.so.0 (0x00007f6406de6000)
+	libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f6406a1b000)
+	libopen-rte.so.20 => /usr/lib/libopen-rte.so.20 (0x00007f6406700000)
+	libopen-pal.so.20 => /usr/lib/libopen-pal.so.20 (0x00007f64062d4000)
+	librt.so.1 => /lib/x86_64-linux-gnu/librt.so.1 (0x00007f64060cb000)
+	libm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007f6405dc2000)
+	/lib64/ld-linux-x86-64.so.2 (0x00007f640741f000)
+	libibverbs.so.1 => /usr/lib/libibverbs.so.1 (0x00007f6405bb3000)
+	librdmacm.so.1 => /usr/lib/x86_64-linux-gnu/librdmacm.so.1 (0x00007f640599b000)
+	libnuma.so.1 => /usr/lib/x86_64-linux-gnu/libnuma.so.1 (0x00007f6405790000)
+	libpmi.so.0 => /usr/lib/x86_64-linux-gnu/libpmi.so.0 (0x00007f640558a000)
+	libutil.so.1 => /lib/x86_64-linux-gnu/libutil.so.1 (0x00007f6405386000)
+	libdl.so.2 => /lib/x86_64-linux-gnu/libdl.so.2 (0x00007f6405182000)
+	libslurm.so.29 => /usr/lib/x86_64-linux-gnu/libslurm.so.29 (0x00007f6404e1c000)
+\end{lstlisting}
+
+Observe to the dependency: \verb|libnuma.so.1|. This is a known MPI library dependency, so it must be replaced by the host one. Then, we search its host equivalent:
+
+\begin{lstlisting}[language=bash,caption={Search host library equivalent}]
+> find . -iname libnuma.*
+	./host/usr/lib64/tmp2/libnuma.so
+	./host/usr/lib64/tmp2/libnuma.a
+	./host/usr/lib64/tmp2/libnuma.so.1
+\end{lstlisting}
+
+As we found its host equivalent, we must move (or copy) it to the binding path.
+
+\begin{lstlisting}[language=bash,caption={Moving library to the binding folder}]
+> mv host/usr/lib64/tmp2/libnuma.* host/usr/lib64/
+\end{lstlisting}
+
+Now the library is inside the folder which will be binded, the container will use it instead of its own one. As we cover dependencies, we will discover new ones. We must repeat the process as many times as necessary. For this, we can use \verb|ls| with some options. For example, for the present case:
+
+\begin{lstlisting}[language=bash,caption={Discovering new dependencies}]
+> ls -lia /host/usr/lib64/libnuma.so.1
+\end{lstlisting}
+
+In addition, it is sometimes necessary to create links between files, because the library is not directly linking to the version of the library that we need. For example, for the libmpi library there are numerous versions that we would already have prepared thanks to binding.
+
+\begin{lstlisting}[language=bash,caption={Multiple library versions}]
+> find . -iname libmpi.*
+    ./host/mpi/lib/ompi_1.X/libmpi.so
+    ./host/mpi/lib/ompi_1.X/libmpi.so.20
+    ./host/mpi/lib/ompi_1.X/libmpi.so.12
+    ./host/mpi/lib/ompi_1.X/libmpi.la
+    ./host/mpi/lib/ompi_1.X/libmpi.so.12.0.2
+    ./host/mpi/lib/ompi_2.X/libmpi.so
+    ./host/mpi/lib/ompi_2.X/libmpi.so.20.0.1
+    ./host/mpi/lib/ompi_2.X/libmpi.so.20
+    ./host/mpi/lib/ompi_2.X/libmpi.so.12
+    ./host/mpi/lib/ompi_2.X/libmpi.la
+\end{lstlisting}
+
+After a trial error test, we find that, for example, this library by default is not linking to what we want, so we can force this link thanks to \verb|ln|.
+
+\begin{lstlisting}[language=bash,caption={Creating links between files}]
+> ln -s libmpi.so libmpi.so.20
+\end{lstlisting}
+
+It is necessary to repeat these steps until no more dependencies are shown. When this moment comes, the application should work properly. Once all dependencies were convered, the execution tests were repeated. Results can be shown at the table below.
 
 \begin{table}[H]
 \centering
@@ -503,7 +603,7 @@ Browsing the Singularity web we can found suggestion of how the binding should b
 \label{my-label}
 \begin{tabular}{|r|c|c|c|c|c|}
 \hline
-\multicolumn{1}{|c|}{Container OpenMPI version} & \multicolumn{5}{c|}{FT2 OpenMPI version} \\ \hline
+\multicolumn{1}{|c|}{Container ompi/} & \multicolumn{5}{c|}{External ompi/} \\ \hline
 \multicolumn{1}{|c|}{} & 1.10.2 & 2.0.0 & 2.0.1 & 2.0.2 & 2.1.1 \\ \hline
 1.10.2 & \color[HTML]{006600}{\cmark}  & \color{green}{\danger} & \color{green}{\danger} & \color{green}{\danger} & \color{green}{\danger} \\ \hline
 2.0.0 & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} \\ \hline
@@ -512,10 +612,14 @@ Browsing the Singularity web we can found suggestion of how the binding should b
 2.1.1 & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} \\ \hline
 \end{tabular}
 \end{table}
-As can be seen at the table above, once all the involved libraries and its dependencies were satisfied, the test program, ring, could be executed under any container-FT2 OpenMPI mix. However, if the 1.10.2 OpenMPI container is used with a superior OpenMPI version outside, it will show a warning prompt, making reference to  different sizes in symbols (e.g. Symbol 'ompi\_mpi\_comm\_world' has different size in shared object, consider re-linking). Due to this, future real world applications could not work properly or crash.
+As can be seen at the table above, once all the involved libraries and its dependencies were satisfied, the test program, ring, could be executed under any container-FT2 OpenMPI mix. However, if container ompi/1.10.2 is used with a higher OpenMPI version outside, it will show a warning prompt, making reference to  different sizes in symbols (e.g. Symbol 'ompi\_mpi\_comm\_world' has different size in shared object, consider re-linking). Due to this, future real world applications could not work properly or crash.
+
+In addition, we must keep in mind that other applications can make use of some libraries that the test program has not done. In that case, we should repeat all the above steps to cover all dependencies again.
+
+Leaving aside these small possible incidents, it seems that we have come up with a solution that allows the use of different versions of Open MPI in and out of containers. This means that when any container with an application that uses MPI arrives, the cluster should be able to run it without problem, whenever it does under this environment.
 
 \subsection{Real world applications}
-Once the test applications passed; real world applications, built inside already created containers, were proved. For this reason, the OpenMPI version contained could not be changed. As we achieved a solution what seems work properly, we will make use of it for these executions. That is, we will check if our solution is suitable for big and complex problems. As these containerized programs belong to real world solutions, their proper execution should suppose a quality assurement for our achieved approach. We will test programs written in the following programing languages: \textit{C++}, \textit{Fortran} and \textit{Python}. All them were executed under two nodes.
+Once the test applications passed; real world applications, built inside already created containers, were proved. For this reason, the OpenMPI version contained could not be changed. As we achieved a solution what seems work properly, we will make use of it for these executions. That is, we will check if our solution is suitable for big and complex problems. As these containerized programs belong to real world solutions, their proper execution should suppose a quality assurement for our achieved approach. We will test programs written in the following programing languages: \textit{C++}, \textit{Fortran} and \textit{Python}. All them were executed under two distributed nodes.
 
 \subsubsection{C++ application: Feel++}
 \begin{table}[H]
@@ -529,7 +633,7 @@ Once the test applications passed; real world applications, built inside already
 1.10.2 & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \textcolor{red}{\xmark} \\ \hline
 \end{tabular}
 \end{table}
-As can be seen, in this test, a containerized 1.10.2 OpenMPI version worked over 1.10.2, 2.0.0, 2.0.1 and 2.0.2 outside OpenMPI versions. Nevertheless, 2.1.1 outside OpenMPI did not work. Most probably this is because the latest version employs an Intel compiler, and not a GNU compiler as the other ones. So, for the very first time, a compiler dependency was discover. In order to get reduce noise as much as possible, from this moment, they are not taken into account OpenMPI versions that have not been compiled with GNU compilers.
+As can be seen in this test, a container ompi/1.10.2 worked over 1.10.2, 2.0.0, 2.0.1 and 2.0.2 outside OpenMPI versions. Nevertheless, external ompi/2.1.1 did not work. Most robably this is because the latest version employs an Intel compiler, and not a GNU compiler as the other ones. So, for the very first time, \textbf{a compiler dependency was discovered}. In order to get reduce noise as much as possible, from this moment, they are not taken into account OpenMPI versions that have not been compiled with GNU compilers.
 
 \subsubsection{Fortran application: XH5For}
 \begin{table}[H]
@@ -545,6 +649,8 @@ As can be seen, in this test, a containerized 1.10.2 OpenMPI version worked over
 \end{tabular}
 \end{table}
 
+Confirming the previous named dependency, the Fortran application worked over all external ompi except ompi/2.1.1, which makes use of an Intel compiler. This bahavior is observed for different container ompi versions, even when there is a one-to-one match, because the containerized application was compiled with a GNU compiler.
+
 \section{Benchmarks}
 
 
@@ -554,9 +660,9 @@ One of the biggest containers' advantages is its theoretical efficient and light
 Nevertheless, until this lightness is verified in our work environment, we will not stop talking about a completely theoretical framework. Because of this, some benchmarks will be done, to verify this in a practical way.
 
 
-So, the objective of the following benchmark tests is no other than proof that containers development will allow a great response time.
+So, the objective of the following benchmark tests is no other than proof that containers make a propper use of HPC resources like memory, networking or computing.
 \subsection{InfiniBand network benchmarks: OSU microbenchmarks}
-Since the goal of this document is the description of how to use Singularity containers employing different versions of MPI, one of the most interesting benchmarks that can be done is the use of the network. We are not talking about a network that connects with the outside, but an internode network that allows the communication of the different processors for a correct parallel operation. For this purpose, FinisTerrae II, as well as many others clusters, uses an InfiniBand network. InfiniBand is a computer-networking communications standard used in high-performance computing that features very high throughput and very low latency. It is used for data interconnect both among and within computers.
+Since the goal of this document is the description of how to use Singularity containers employing different versions of MPI, one of the most interesting benchmarks that can be done is the use of the network. We are not talking about a network that connects with the outside, but an internode network that allows the communication of the different processors for a correct distribution operation. For this purpose, FinisTerrae II, as well as many others clusters, uses an InfiniBand network. InfiniBand is a computer-networking communications standard used in high-performance computing that features very high throughput and very low latency. It is used for data interconnect both among and within computers.
 
 
 So, now the Singularity containers are using MPI, we will check if they are making use of the InfiniBand network for that. 
@@ -572,6 +678,7 @@ sudo singularity exec -w CONTAINER_NAME.img ./configure CC=/path/to/special/mpic
 
 
 Once the \textit{OSU microbenchmarks} are installed, we can find a battery of test in the directory \verb|/usr/bin/libexec/osu-micro-benchmarks| (default installation directory). This battery of benchmarks is composed by the following:
+
 \begin{lstlisting}[language=bash,caption={OSU microbenchmarks}]
 .
 `-- osu-micro-benchmarks
@@ -794,13 +901,13 @@ Triad    & \multicolumn{2}{c|}{177710.3}         & 0.102694 & 0.102639 & 0.10285
 \end{table}
 
 
-Note that the test results have an avg error less than 1.000000e-13 on all three arrays for both cases, what make them a reliable source. 
+Note that the test results have an avg error less than 1.000000e-13 on all three arrays for both cases, what make them a reliable source. This value is given by the STREAM developer team.
 
 
 Now that all the results were obtained, we can easily compare them. Starting with those related to the execution times, observe that they present values with differences that hover around the magnitude of 1.0e-4 seconds. In addition, there is no execution that always obtains the best results (less time), but in some cases this value is obtained by the native execution and in others by the containerized solution. Looking now at the bandwidth rate, there is no a clear difference between the results to assign a solution better than the other one. \newline 
 
 
-So, after all the done tests and the obtained results, we can say that a containerized solution will make use of the machine memory that will come very close to the use that would be made under a native execution. \textbf{Native and container executions are comparable in terms of memory.}
+So, after all the done tests and the obtained results, we can say that a containerized solution will make use of the machine memory that will come very close to the use that would be made under a native execution. \textbf{Native and container executions are equivalent in terms of memory.}
 
 \subsection{CPU benchmarks: HPL}
 \textit{HPL}\cite{HPL}, a portable implementation of the \textit{High-Performance Linpack Benchmark} for distributed-memory computers, is a software package that solves a random dense linear system in double precision arithmetic on distributed-memory computers.
