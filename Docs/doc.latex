@@ -60,12 +60,17 @@ The e-infrastructure consists of an integrated MSO application catalogue contain
 \label{sec:architecture}
 The tests and executions named in the following document were launched it all under the hardware described in this section. As this research belong to the \textit{Supercomputing Center of Galicia (CESGA)}, the selected machine to perform the development was the \textit{Finis Terrae II}.
 
-\textit{Finis Terrae} is a scientific computing infrastructure managed by \textit{CESGA} and integrated in RES (the Spanish Supercomputing Network), a Spanish Unique Scientific and Technical Installation (ICTS). It is a linux based heterogeneous cluster, with an Infiniband FDR low latency network interconnecting 317 computing nodes based on Intel Xeon Hasswell processors. Each node is composed by 24 cores and has a 128GB main memory per server. It is
-connected to a shared Lustre High-performance Filesystem with 768TB of disk
-space. Additionally, the system has 4 GPU servers with
-GPUs (NVIDIA K80) and 2 servers with Intel Xeon Phi accelerators. There is also
-one "Fat" node with 8 Intel Haswell 8867v3 processors, 128 cores and 4TB of
-main memory. Together, these nodes are able to provide a computing power of 328 TFLOPS, 44,8 TB of RAM and 1,5 PB of disk capacity. The system includes a high performance parallel storage system able to achieve a speed of more than 20 GB/s.
+\textit{Finis Terrae} is a scientific computing infrastructure managed by \textit{CESGA} and integrated in RES (the Spanish Supercomputing Network), a Spanish Unique Scientific and Technical Installation (ICTS). It is a linux based heterogeneous cluster, with an Infiniband FDR low latency network interconnecting 317 computing nodes based on Intel Xeon Hasswell processors. Each node is composed by 24 cores and has a 128GB main memory per server. The cache structure of each core is the following one:
+\begin{itemize}
+\item L1d cache: 32K
+\item L1i cache: 32K
+\item L2 cache: 256K
+\item L3 cache: 30720K
+\end{itemize}
+
+The cluster is connected to a shared Lustre High-performance Filesystem with 768TB of disk space. Additionally, the system has 4 GPU servers with GPUs (NVIDIA K80) and 2 servers with Intel Xeon Phi accelerators. There is also one "Fat" node with 8 Intel Haswell 8867v3 processors, 128 cores and 4TB of main memory. Together, these nodes are able to provide a computing power of 328 TFLOPS, 44,8 TB of RAM and 1,5 PB of disk capacity. The system includes a high performance parallel storage system able to achieve a speed of more than 20 GB/s.
+
+
 
 \begin{figure}[H]
 \centering
@@ -101,7 +106,7 @@ In accordance with the requirements mentioned in the previous section, a study o
 It is very important to always keep in mind these premises, since they are the ones that will limit the selection of the solution:
 \begin{itemize}
 \item The operating system of the cluster can not be modified, since there are other jobs that are currently running in the same without any problem, and it is not possible to hinder its execution.
-\item We must make use of the available hardware (shown in section \nameref{sec:architecture}) as efficiently as possible; that is, we can not limit the resources (CPU, memory, network, etc.)
+\item We must make use of the available hardware (shown in section \ref{sec:architecture}) as efficiently as possible; that is, we can not limit the resources (CPU, memory, network, etc.)
 \end{itemize}
 
 Thus, some common virtualization solutions are:
@@ -130,7 +135,7 @@ On the other hand, Singularity was designed focusing on HPC and allows to levera
 
 Singularity was also designed around the notion of extreme mobility of computing and reproducible science. Singularity is also used to perform HPC in the cloud on AWS, Google Cloud, Azure and other cloud providers. This makes it possible to develop a research work-flow on a laboratory or a laboratory server, then bundle it to run on a departmental cluster, on a leadership class supercomputer, or in the cloud.
 
-The simple usage of Singularity allows users to manage the creation of new containers and also to run parallel applications easily. Figure \nameref{Singularity work-flow at Finis Terrae II} shows the work-flow for creating and running containers using Singularity at Finis Terrae II.
+The simple usage of Singularity allows users to manage the creation of new containers and also to run parallel applications easily. Figure \ref{Singularity work-flow at Finis Terrae II} shows the work-flow for creating and running containers using Singularity at Finis Terrae II.
 
 \begin{figure}[H]
 \centering
@@ -145,7 +150,7 @@ This work-flow allow an automatized integration and deployment, deriving in a ve
 
 \section{Involved technologies}
 \label{sec:technologies}
-The hardware under all tests and executions were executed were already described in section \nameref{sec:architecture}. Now it is turn to describe all the involved software needed to perform the solution, as well as all the implications they could have.
+The hardware under all tests and executions were executed were already described in section \ref{sec:architecture}. Now it is turn to describe all the involved software needed to perform the solution, as well as all the implications they could have.
 
 \subsection{Host Operating System and kernel}
 The Finis Terrae II host machine have a \textbf{\textit{Red Hat Enterprise Linux Server (RHEL) release 6.7 (Santiago)}}, with a kernel version \verb|Linux 2.6.32-573.12.1.el6.x86_64|. Fortunately, this kernel version is compatible with Singularity.
@@ -412,7 +417,7 @@ The first approach was the more intuitive and expected. That is, try a simple ap
 
 \paragraph{MPIRUN}
 \subparagraph{}
-The first test done was the mix of the different ompi possibilities, including the different available compilers. For these executions, the obtained results were a one-to-one version compatibility. That is, for the properly program execution, the version of Open MPI must match exactly inside and outside the container. However, the same conclusion was obtained for the different conjugations with the different compilers available. This means that, until proven otherwise, the compiler will not be in itself a limiting factor. In addition, for this particular environment, the results were the same for single node cases as for multiple node cases. Results can be visualized on table \nameref{test1}. 
+The first test done was the mix of the different ompi possibilities, including the different available compilers. For these executions, the obtained results were a one-to-one version compatibility. That is, for the properly program execution, the version of Open MPI must match exactly inside and outside the container. However, the same conclusion was obtained for the different conjugations with the different compilers available. This means that, until proven otherwise, the compiler will not be in itself a limiting factor. In addition, for this particular environment, the results were the same for single node cases as for multiple node cases. Results can be visualized on table \ref{test1}. 
 
 \begin{table}[H]
 \centering
@@ -430,7 +435,7 @@ The first test done was the mix of the different ompi possibilities, including t
 \end{tabular}
 \end{table}
 
-The same configuration was employed to prove the impi possible configurations. In this case, the selected program was \verb|test.c| instead of \verb|ring_c.c|. Due to some complications to obtain a containerized impi/5.1 only a container impi/2017 could be tested. The obtained results were the same than witch the impi tests, only one-to-one matches worked properly. This can be observed on table \nameref{test2}
+The same configuration was employed to prove the impi possible configurations. In this case, the selected program was \verb|test.c| instead of \verb|ring_c.c|. Due to Intel MPI 5.1 version is no longer available to download on the Intel Developer Zone, only a container impi/2017 could be prepared. In order to test an impi/5.1 container, we use a mirror of a compute node with impi/5.1 on it. Althout this is not exactly the same as prepare a brand new container and install on it the Intel MPI library, it is very close to it. The obtained results were the same than witch the ompi tests, only one-to-one matches worked properly. This can be observed on table \ref{test2}.
 
 \begin{table}[H]
 \centering
@@ -438,29 +443,29 @@ The same configuration was employed to prove the impi possible configurations. I
 \label{test2}
 \begin{tabular}{|r|c|c|}
 \hline
-\multicolumn{1}{|c|}{Container Intel MPI version} & \multicolumn{2}{c|}{FT2 Intel MPI version} \\ \hline
+\multicolumn{1}{|c|}{Container impi/} & \multicolumn{2}{c|}{External impi/} \\ \hline
  & 5.1 & 2017 \\ \hline
-5.1 &  &  \\ \hline
+5.1 & \color[HTML]{006600}{\cmark} & \textcolor{red}{\xmark} \\ \hline
 2017 & \textcolor{red}{\xmark} & \color[HTML]{006600}{\cmark} \\ \hline
 \end{tabular}
 \end{table}
 
 \hr
-Note: Due to the difficulties to prove the impi configurations, from this moment, only test with Open MPI will be done. 
+Note: In order to set some boundaries to the study, from this moment we decide to study only the Open MPI compability, avoiding impi distributions.
 
 
 \paragraph{SRUN}
 \subparagraph{}
 Continuing the first presented approach, now we will execute the exactly same tests, but under the \textit{srun} process manager.
 
-As could be expected, results were not the same. The big difference is that under the \textit{srun} process manager, the multiple nodes executions were not successful. Only executions under one node and with one-to-one matches for the Open MPI versions inside and outside the container were successful. This behavior can be observed on table \nameref{test3}
+As could be expected, results were not the same. The big difference is that under the \textit{srun} process manager, the multiple nodes executions were not successful. Only executions under one node and with one-to-one matches for the Open MPI versions inside and outside the container were successful. This behavior can be observed on table \ref{test3}.
 \begin{table}[H]
 \centering
 \caption{SRUN mixing different compilers, 1 node. Open MPI tests.}
 \label{test3}
 \begin{tabular}{|r|c|c|c|c|c|}
 \hline
-\multicolumn{1}{|c|}{Container OpenMPI version} & \multicolumn{5}{c|}{FT2 OpenMPI version} \\ \hline
+\multicolumn{1}{|c|}{Container ompi/} & \multicolumn{5}{c|}{External ompi/} \\ \hline
 \multicolumn{1}{|c|}{} & 1.10.2 & 2.0.0 & 2.0.1 & 2.0.2 & 2.1.1 \\ \hline
 1.10.2 & \color[HTML]{006600}{\cmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} \\ \hline
 2.0.0 & \textcolor{red}{\xmark} & \color[HTML]{006600}{\cmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} \\ \hline
@@ -470,14 +475,14 @@ As could be expected, results were not the same. The big difference is that unde
 \end{tabular}
 \end{table}
 
-The results for multiple nodes can be observed on table \nameref{test4} When this test was done, false positives were obtained for every one-to-one match. In those cases, when the ring program was executed, it did an execution for every node, but none of them could "see" the others. Because of this reason, the ring call was executed as many instances as nodes were indicated, having each of them just one process per ring. So, parallel communication was not obtained.
+The results for multiple nodes can be observed on table \ref{test4}. When this test was done, false positives were obtained for every one-to-one match. In those cases, when the ring program was executed, it did an execution for every node, but none of them could "see" the others. Because of this reason, the ring call was executed as many instances as nodes were indicated, having each of them just one process per ring. So, parallel communication was not obtained.
 \begin{table}[H]
 \centering
 \caption{SRUN mixing different compilers, 2 nodes. Open MPI tests.}
 \label{test4}
 \begin{tabular}{|r|c|c|c|c|c|}
 \hline
-\multicolumn{1}{|c|}{Container OpenMPI version} & \multicolumn{5}{c|}{FT2 OpenMPI version} \\ \hline
+\multicolumn{1}{|c|}{Container ompi/} & \multicolumn{5}{c|}{External ompi/} \\ \hline
 \multicolumn{1}{|c|}{} & 1.10.2 & 2.0.0 & 2.0.1 & 2.0.2 & 2.1.1 \\ \hline
 1.10.2 & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} \\ \hline
 2.0.0 & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} \\ \hline
@@ -502,7 +507,7 @@ After this, the simple mixing approach was abandoned, and we turned into a new a
 \subsubsection{Binding libraries and its dependencies}
 \label{sec:linking}
 
-Since the previous approach, which consists of simply mixing the different MPI versions did not work, we will give it a twist and we will apply a completely different approach. Singularity containers allow us to bind some files and folders as we want to from the host. So, we will try to bind all the needed Open MPI libraries and its dependencies. Then, what we are trying to do at all is to employ exactly the same version of Open MPI inside and outside the container, what we already know it works properly. Its advantage is that it will be absolutely transparent for the final user. When a container arrive, it will be executed into a environment which will bind its Open MPI libraries to make use of the cluster MPI libraries, instead of their own. In counterpart, the big and obvious disadvantage is that the container philosophy will be lost. Containers will pass from use their own resources to use those what belong to the host, what supposes a portability lost. With this I mean that if we want to use this approach on a different cluster, we must adjust the libraries binding for every unique case. However, as we execute this solution under the Finis Terrae II, it could suppose a solution that contributes with a high level of flexibility and portability. That is, the cluster should accept a big and varied quantity of containers which make use of MPI.
+Since the previous approach, which consists of simply mixing the different MPI versions did not work, we will give it a twist and we will apply a completely different approach. Singularity containers allow us to bind some files and folders as we want to from the host. So, we will try to bind all the needed Open MPI libraries and its dependencies. Then, what we are trying to do at all is to employ exactly the same version of Open MPI inside and outside the container, what we already know it works properly. Its advantage is that it will be absolutely transparent for the final user. When a container arrive, it will be executed into a environment which will bind its Open MPI libraries to make use of the cluster MPI libraries, instead of their own. In counterpart, the big and obvious disadvantage is that the container philosophy will be corrupted. Containers will pass from use their own resources to use those what belong to the host, what supposes a solution configuration portability loss. With this I mean that if we want to use this approach on a different cluster, we must adjust the libraries binding for every unique case. However, as we execute this solution under the Finis Terrae II, it could suppose a solution that contributes with a high level of flexibility and portability. That is, the cluster should accept a big and varied quantity of containers which make use of Open MPI. Likewise, it is very important to realize that the containers alone will not represent any loss of portability under any concept. That is, the same containers that could be employed in the Finis Terrae II under this solution are perfectly usable in other clusters or machines, without requiring any direct change in them..
 
 Browsing the Singularity web we can found suggestion of how the binding should be done\cite{binding}. Although this recommendations are made for GPU drivers, Open MPI binding is named too as an alternative configuration solution. The explication is not very exhaustive, but at least it is considered by the Singularity team. Several test must be done in order to achieve the final binding solution.
 
@@ -668,7 +673,7 @@ Since the goal of this document is the description of how to use Singularity con
 So, now the Singularity containers are using MPI, we will check if they are making use of the InfiniBand network for that. 
 
 
-The selected bechmarks for this practical approach are the \textit{OSU microbenchmarks}\cite{osu-microbenchmarks}, belonging to \textit{The Ohio State University}, what will allow us to measure some interesting parameters, such as latency or bandwidth. Once the tests were done, we will check if the obtained results belong to a reasonable InfiniBand network parameters. The objective of this test is not to obtain the best possible results in relation to the network, but only to see if the containers are actually making use of the InfiniBand network, so no real optimizations were done with the network.
+The selected bechmarks for this practical approach are the \textit{OSU microbenchmarks}\cite{osu-microbenchmarks}, belonging to \textit{The Ohio State University}, what will allow us to measure some interesting parameters, such as latency or bandwidth. Once the tests were done, we will check if the obtained results belong to a reasonable InfiniBand network parameters. The objective of this test is not to obtain the best possible results in relation to the network, but only to see if the containers are actually making use of the InfiniBand network, so no real optimizations were done with the network. As we do not care about obtainning the best values, the results of these tests will not be compared with any others, like the values under a native execution, we will only check their belonging to reasonable InfiniBand values. 
 
 
 When the \textit{OSU microbenchmark} pack is downloaded in our container, it can be compilled and installed easily thanks to the included makefile.
@@ -734,36 +739,24 @@ Once the \textit{OSU microbenchmarks} are installed, we can find a battery of te
 The working of these different benchmarks can be consulted on the \verb|README| file which is downloaded along with the benchmarks. If we do not want to download the \textit{OSU microbenchmarks} package to read this file, it can be also consulted online\cite{osu-microbenchmarks-readme}.
 
 
-As can be seen, a lot of different benchmarks are available on this package. We will focus our attention on the point-to-point (pt2pt) tests, what will allow us to measure and to evaluate the network's characteristics from the own containers.
+As can be seen, a lot of different benchmarks are available on this package. We will focus our attention on the point-to-point (pt2pt) tests, what will allow us to measure and to evaluate the network's characteristics from the own containers.\newline
 
-\paragraph{Latency Tests}
-\subparagraph{osu\_latency - Latency Test}
-The latency tests are carried out in a ping-pong fashion. The sender sends a message with a certain data size to the receiver and waits for a reply from the receiver. The receiver receives the message from the sender and sends back a reply with the same data size. Many iterations of this ping-pong test are carried out and average one-way latency numbers are obtained. Blocking version of MPI functions (MPI\_Send and MPI\_Recv) are used in the tests.
-\subparagraph{osu\_multi\_lat - Multi-pair Latency Test}
-This test is very similar to the latency test. However, at the same instant multiple pairs are performing the same test simultaneously. In order to perform the test across just two nodes the hostnames must be specified in block fashion. 
-
-\paragraph{Bandwidth Tests}
-\subparagraph{osu\_bw - Bandwidth Test}
-The bandwidth tests were carried out by having the sender sending out a fixed number (equal to the window size) of back-to-back messages to the receiver and then waiting for a reply from the receiver. The receiver sends the reply only after receiving all these messages. This process is repeated for several iterations and the bandwidth is calculated based on the elapsed time (from the time sender sends the first message until the time it receives the reply back from the receiver) and the number of bytes sent by the sender. The objective of this bandwidth test is to determine the maximum sustained date rate that can be achieved at the network level. Thus, non-blocking version of MPI functions (MPI\_Isend and MPI\_Irecv) were used in the test. 
-
-\subparagraph{osu\_bibw - Bidirectional Bandwidth Test}
-The bidirectional bandwidth test is similar to the bandwidth test, except that both the nodes involved send out a fixed number of back-to-back messages and wait for the reply. This test measures the maximum sustainable aggregate bandwidth by two nodes.
-
-\subparagraph{osu\_mbw\_mr - Multiple Bandwidth / Message Rate Test}
-The multi-pair bandwidth and message rate test evaluates the aggregate uni-directional bandwidth and message rate between multiple pairs of processes. Each of the sending processes sends a fixed number of messages (the window size) back-to-back to the paired receiving process before waiting for a reply from the receiver. This process is repeated for several iterations. The objective of this benchmark is to determine the achieved bandwidth and message rate from one node to another node with a configurable number of processes running on each node. 
-
-
-\hr
-Having understood the purpose and behavior of the tests to be performed, we proceed to explain how they will be executed. We will make use of a little battery of five containers with Ubuntu 16.04.2 LTS (Ubuntu Xenial). Each container will have installed inside different Open MPI versions: 1.10.2, 2.0.0. 2.0.1, 2.0.2 and 2.1.1. Then, the \textit{OSU microbenchmarks} will be executed under the Finis Terrae II employing these containers, and mixing them with different Open MPI versions on it (outside the containers). The selected outside Open MPI versions are: 1.10.2, 2.0.0 and 2.0.1. So, a total of fifteen executions per test will be done, in order to obtain more stable values.
-
+Having understood the purpose of the tests to be performed, we proceed to explain their specific behavior as well as how they will be executed. We will make use of a little battery of five containers with Ubuntu 16.04.2 LTS (Ubuntu Xenial). Each container will have installed inside different Open MPI versions: 1.10.2, 2.0.0. 2.0.1, 2.0.2 and 2.1.1. Then, the \textit{OSU microbenchmarks} will be executed under the Finis Terrae II employing these containers, and mixing them with different Open MPI versions on it (outside the containers). The selected outside Open MPI versions are: 1.10.2, 2.0.0 and 2.0.1. So, a total of fifteen executions per test will be done, in order to obtain more stable values.
 
 To ensure the use of the InfiniBand network, the obtained values will be compared with some scientific papers that tell how they used the same tests to measure their own InfiniBand network. These texts belong to research centers or similar, so they will be considered completely reliable sources. Some of them compare the InfiniBand network values versus the Ethernet network values obtained under the same tests. So, if the results obtained under the Finis Terrae II hover around similar values, the InfiniBand network use will be assured.
 
-
 Once the different benchmarks were executed, it is easily observable that the obtained results under the same Open MPI version out of the container are very stable for the five Open MPI version combinations within the container. However, this does not happen when we talk about total Open MPI combinations outside the containers (although in some cases it remains completely stable). Observed this behavior, what has been done is to perform the average of the values belonging to the same version of Open MPI outside the container, to perform a comparison between the three versions of Open MPI outside the container.
 
+
 \paragraph{Latency Tests}
-\subparagraph{osu\_latency - Latency Test} As can be shown in figure \nameref{OSU Latency Test}, all tests showed very stable results regardless of the version of Open MPI used. The latency values shown are very small, less than 6 microseconds with window sizes up to 8192 bytes.
+\subparagraph{}
+
+The theoretical latency values of InfiniBand systems is about 160 nanoseconds. The real ones are around 6 microseconds, depending a lot on the software and firmware. So, we expect to obtain latency values around 6 microseconds.
+
+\subparagraph{osu\_latency - Latency Test} 
+The latency tests are carried out in a ping-pong fashion. The sender sends a message with a certain data size to the receiver and waits for a reply from the receiver. The receiver receives the message from the sender and sends back a reply with the same data size. Many iterations of this ping-pong test are carried out and average one-way latency numbers are obtained. Blocking version of MPI functions (MPI\_Send and MPI\_Recv) are used in the tests.\newline
+
+As can be shown in figure \ref{OSU Latency Test}, all tests showed very stable results regardless of the version of Open MPI used. The latency values shown are very small, less than 6 microseconds with window sizes up to 8192 bytes.
 \begin{figure}[H]
 \centering
      \includegraphics[width=1.0\textwidth]{osu_latency}
@@ -771,7 +764,9 @@ Once the different benchmarks were executed, it is easily observable that the ob
        \label{OSU Latency Test}
 \end{figure}
 
-\subparagraph{osu\_multi\_lat - Multi-pair Latency Test} For the execution of this test, four cores were employed, in four different nodes. Results can be observed in figure \nameref{OSU Multi-pair Latency Test}. It seems that by extending the complexity of the problem, making multiple pairs to perform the same test simultaneously, at the same instant, not suppose a problem for the latency. The obtained results show one more time an extraordinary stability and a very low latency.
+\subparagraph{osu\_multi\_lat - Multi-pair Latency Test} This test is very similar to the latency test. However, at the same instant multiple pairs are performing the same test simultaneously. In order to perform the test across just two nodes the hostnames must be specified in block fashion. \newline
+
+For the execution of this test, four cores were employed, in four different nodes. Results can be observed in figure \ref{OSU Multi-pair Latency Test}. It seems that by extending the complexity of the problem, making multiple pairs to perform the same test simultaneously, at the same instant, does not increase latency. The obtained results show one more time an extraordinary stability and a very low latency.
 \begin{figure}[H]
 \centering
      \includegraphics[width=1.0\textwidth]{osu_multi_lat}
@@ -780,7 +775,9 @@ Once the different benchmarks were executed, it is easily observable that the ob
 \end{figure}
 
 \paragraph{Bandwidth Tests}
-\subparagraph{osu\_bw - Bandwidth Test} The general behavior of this test is the expected and desired. It can be observed in figure \nameref{OSU Bandwidth Test} As the window size increases, the bandwidth required for transmission is increased, until the point at which the maximum bandwidth is reached, which is near 6000 MB/s. In general, the different versions of Open MPI outside the container do not represent a differentiating factor in terms of bandwidth. However, in the central values it is possible to observe a slight advantage under the use of Open MPI 1.10.2. Anyway, in the "critical" values, which could be considered those in which the bandwidth is being consumed in its entirety, they all have the same behavior.
+\subparagraph{osu\_bw - Bandwidth Test} The bandwidth tests were carried out by having the sender sending out a fixed number (equal to the window size) of back-to-back messages to the receiver and then waiting for a reply from the receiver. The receiver sends the reply only after receiving all these messages. This process is repeated for several iterations and the bandwidth is calculated based on the elapsed time (from the time sender sends the first message until the time it receives the reply back from the receiver) and the number of bytes sent by the sender. The objective of this bandwidth test is to determine the maximum sustained date rate that can be achieved at the network level. Thus, non-blocking version of MPI functions (MPI\_Isend and MPI\_Irecv) were used in the test. \newline
+
+The general behavior of this test is the expected and desired. It can be observed in figure \ref{OSU Bandwidth Test} As the window size increases, the bandwidth required for transmission is increased, until the point at which the maximum bandwidth is reached, which is near 6000 MB/s. In general, the different versions of Open MPI outside the container do not represent a differentiating factor in terms of bandwidth. However, in the central values it is possible to observe a slight advantage under the use of Open MPI 1.10.2. Anyway, in the "critical" values, which could be considered those in which the bandwidth is being consumed in its entirety, they all have the same behavior.
 \begin{figure}[H]
 \centering
      \includegraphics[width=1.0\textwidth]{osu_bw}
@@ -788,8 +785,9 @@ Once the different benchmarks were executed, it is easily observable that the ob
        \label{OSU Bandwidth Test}
 \end{figure}
 
-\subparagraph{osu\_bibw - Bidirectional Bandwidth Test}
-Now, problem complexity will be increased, making both the nodes involved send out a fixed number of back-to-back messages and wait for the reply. Due to the success of the uni-directional Bandwidth test, the expected result to this test is the double value achievement, compared to the uni-directional test. Contrary to what might be expected, the behavior shown is not stable. As can be seen in figure \nameref{OSU Bidirectional Bandwidth Test}, once the window size is bigger than 8192MB, results appear chaotic and without apparent sense. Version 1.10.2 appears to be the most stable, but its high scalability once the 8192MB threshold is passed can be interpreted as a bad signal too.
+\subparagraph{osu\_bibw - Bidirectional Bandwidth Test} The bidirectional bandwidth test is similar to the bandwidth test, except that both the nodes involved send out a fixed number of back-to-back messages and wait for the reply. This test measures the maximum sustainable aggregate bandwidth by two nodes. \newline
+
+Now, problem complexity will be increased, making both the nodes involved send out a fixed number of back-to-back messages and wait for the reply. Due to the success of the uni-directional Bandwidth test, the expected result to this test is the double value achievement, compared to the uni-directional test. Contrary to what might be expected, the behavior shown is not stable. As can be seen in figure \ref{OSU Bidirectional Bandwidth Test}, once the window size is bigger than 8192MB, results appear chaotic and without apparent sense. Version 1.10.2 appears to be the most stable, but its high scalability once the 8192MB threshold is passed can be interpreted as a bad signal too.
 \begin{figure}[H]
 \centering
      \includegraphics[width=1.0\textwidth]{osu_bibw}
@@ -797,8 +795,9 @@ Now, problem complexity will be increased, making both the nodes involved send o
        \label{OSU Bidirectional Bandwidth Test}
 \end{figure}
 
-\subparagraph{osu\_mbw\_mr - Multiple Bandwidth}
-Now the number of cores involved in the problem will be increased. A total of four cores (belonging to four different nodes) were used. So, the waited behavior is to have two senders and two receivers, what will cause the obtaining of double the bandwidth, compared to the uni-directional test, since the result are added. Fortunately this is what it was obtained as result, as can be seen in figure \nameref{OSU Multiple Bandwidth Test}.
+\subparagraph{osu\_mbw\_mr - Multiple Bandwidth} The multi-pair bandwidth and message rate test evaluates the aggregate uni-directional bandwidth and message rate between multiple pairs of processes. Each of the sending processes sends a fixed number of messages (the window size) back-to-back to the paired receiving process before waiting for a reply from the receiver. This process is repeated for several iterations. The objective of this benchmark is to determine the achieved bandwidth and message rate from one node to another node with a configurable number of processes running on each node. \newline
+
+Now the number of cores involved in the problem will be increased. A total of four cores (belonging to four different nodes) were used. So, the waited behavior is to have two senders and two receivers, what will cause the obtaining of double the bandwidth, compared to the uni-directional test, since the result are added. Fortunately this is what it was obtained as result, as can be seen in figure \ref{OSU Multiple Bandwidth Test}.
 \begin{figure}[H]
 \centering
      \includegraphics[width=1.0\textwidth]{osu_mbw_mr_bandwidth}
@@ -806,7 +805,7 @@ Now the number of cores involved in the problem will be increased. A total of fo
        \label{OSU Multiple Bandwidth Test}
 \end{figure}
 \subparagraph{osu\_mbw\_mr - Message Rate Test}
-Analyzing the message rate, if we deal with small sized messages, such as those shown at the beginning of the graph \nameref{OSU Message Rate Test}, a big number of them can be sent, thanks to the big bandwidth available. As its size increases, the bandwidth will not be enough to send so many. Therefore, the behavior should be approximately the reverse of the \nameref{OSU Multiple Bandwidth Test} graph (understanding behavior as figure shape, not its values!). As an add-on, it can be said that for smaller sized messages as the outside Open MPI version is higher, its behavior is getting better.
+Analyzing the message rate, if we deal with small sized messages, such as those shown at the beginning of the graph \ref{OSU Message Rate Test}, a big number of them can be sent, thanks to the big bandwidth available. As its size increases, the bandwidth will not be enough to send so many. Therefore, the behavior should be approximately the reverse of the \ref{OSU Multiple Bandwidth Test} graph (understanding behavior as figure shape, not its values!). As an add-on, it can be said that for smaller sized messages as the outside Open MPI version is higher, its behavior is getting better.
 \begin{figure}[H]
 \centering
      \includegraphics[width=1.0\textwidth]{osu_mbw_mr_messages}
@@ -825,7 +824,7 @@ To run the Stream Benchmark on multiprocessor, there are several choices: OpenMP
 
 
 If the reader of this document wishes to go further into the operation of STREAM, online official documentation\cite{stream-documentation} can be consulted. \newline
-Turning to our particular case, Finis Terrae II nodes have 24 cores, with the following memory cache structure:
+Turning to our particular case, as could be shown in section \ref{sec:architecture}, Finis Terrae II nodes have 24 cores, with the following memory cache structure:
 \begin{itemize}
 \item L1d cache: 32K
 \item L1i cache: 32K
@@ -927,9 +926,9 @@ In order to get a battery of results a little varied, what will be done is to ex
 
 The results of the one-to-one inside-outside MPI versions weak scaling tests show an increase of the aggregated performance as we increase the number of nodes involved. Looking at the results we can also see that the performance per node is maintained almost immutable along the different executions. These results are also very close to the expected theoretical values.
 
-Figure \nameref{Weak scaling test 1} shows the performance (logarithmic scale) of the weak scaling test depending on the number of nodes involved in the computation.
+Figure \ref{Weak scaling test 1} shows the performance (logarithmic scale) of the weak scaling test depending on the number of nodes involved in the computation.
 
-To provide another view of the obtained values, they can also be seen in figure \nameref{Weak scaling test 2}, with a different scale for the vertical axis (GFlops).
+To provide another view of the obtained values, they can also be seen in figure \ref{Weak scaling test 2}, with a different scale for the vertical axis (GFlops).
 
 \begin{figure}[H]
 \centering
@@ -945,7 +944,7 @@ To provide another view of the obtained values, they can also be seen in figure 
        \label{Weak scaling test 2}
 \end{figure}
 
-Comparing those results with the inside-outside mixed MPI execution, it is clear that both have the same trend. However, in the mix test, a little delay is present. At this point, it is important to clarify that the test has been performed only once (a single execution), due to the large computational time that is required for this. Therefore, in the absence of comparisons with other executions, it is possible that this particular case has produced factors that generate noise, thus causing this delay. So, if we look at figures \nameref{Weak scaling test 3} and \nameref{Weak scaling test 4}, we will be able to appreciate this little delay, especially on the 32 nodes execution.
+Comparing those results with the inside-outside mixed MPI execution, it is clear that both have the same trend. However, in the mix test, a little delay is present. At this point, it is important to clarify that the test has been performed only once (a single execution), due to the large computational time that is required for this. Therefore, in the absence of comparisons with other executions, it is possible that this particular case has produced factors that generate noise, thus causing this delay. So, if we look at figures \ref{Weak scaling test 3} and \ref{Weak scaling test 4}, we will be able to appreciate this little delay, especially on the 32 nodes execution.
 
 \begin{figure}[H]
 \centering
@@ -965,6 +964,62 @@ Therefore, despite the fact that the execution with inside-outside mixed MPI has
 
 \section{Discussion 1/2-1 page}
 Ut eget est sem. Duis suscipit turpis sed orci mattis, sed tempus sapien rhoncus. Aliquam at ex nulla. Suspendisse et lorem ornare, tincidunt eros et, dictum metus. Etiam auctor elementum enim. Fusce in convallis ex, at sagittis elit. Suspendisse auctor gravida molestie. In mi tellus, tristique quis mi sed, blandit lobortis libero. 
+
+\newpage
+\section{Annexes}
+\subsection{Bootstrap definition file}
+The following bootstrap definition file must be called with a Singularity container image in order to create a container with the latest stable  Ubuntu repo available on the Docker Hub. At the moment this lines are been written this is Ubuntu 16.04.2 LTS (Ubuntu Xenial). This container will install Open MPI, downloading it from its official page (not from repositories). In this concrete case, it will be installed ompi/1.10.2, but simply change the version number on the necessary lines to download and configure another version.\newline
+
+To do that, simply use the Singularity bootstrap option. It is important to use it with superuser permissions:
+
+\begin{lstlisting}[language=bash,caption={Employing Singularity bootstrap option}]
+sudo singularity bootstrap container.img bootstrap.def
+\end{lstlisting}
+
+\begin{lstlisting}[language=bash,caption={Bootstrap definition file to create an Ubuntu container with Open MPI installed and configured}]
+BootStrap: docker
+From: ubuntu
+IncludeCmd: yes
+
+%post
+	# Get the system ready
+	sed -i 's/main/main restricted universe/g' /etc/apt/sources.list
+	apt-get update
+	apt-get install -y --no-install-recommends apt-utils bash build-essential curl gcc git python python-pip pkg-config python-dev python-setuptools rsync software-properties-common time unzip vim nano wget zip 
+	# Need to be split in 2 different apts
+	apt-get install -y --no-install-recommends zlib1g-dev libopenblas-dev libc6-dev libcurl4-openssl-dev libfreetype6-dev libgcc-5-dev libpng-dev libzmq3-dev 
+	apt-get clean
+	# Update to the latest pip (newer than repo)
+	pip install --no-cache-dir --upgrade pip
+	# Install other commonly-needed packages
+	pip install --no-cache-dir --upgrade future matplotlib scipy 
+	# IB stuff, based on https://community.mellanox.com/docs/DOC-2431
+	apt-get install -y dkms infiniband-diags libibverbs* ibacm librdmacm* libmlx4* libmlx5* mstflint libibcm.* libibmad.* libibumad* opensm srptools libmlx4-dev librdmacm-dev rdmacm-utils ibverbs-utils perftest vlan ibutils
+	apt-get install -y libtool autoconf automake build-essential ibutils ibverbs-utils rdmacm-utils infiniband-diags perftest librdmacm-dev libibverbs-dev libmlx4-1 numactl libnuma-dev autoconf automake gcc g++ git libtool pkg-config
+	apt-get install -y libnl-3-200 libnl-route-3-200 libnl-route-3-dev libnl-utils
+	# OpenMPI dependencies
+	apt-get install -y libopenmpi-dev openmpi-common openmpi-bin openmpi-doc dapl2-utils libdapl-dev libdapl2 libibverbs1 libibverbs-dev librdmacm1 libcxgb3-1 libipathverbs1 libmlx4-1 libmlx5-1 libmthca1 libnes1 libpmi0 libpmi0-dev libslurm29 libslurm-dev libsysfs2 libsysfs-dev
+	# Install OpenMPI
+	cd /tmp/
+	# IMPORTANT!: Change the Open MPI version to the desired one
+	wget https://www.open-mpi.org/software/ompi/v1.10/downloads/openmpi-1.10.2.tar.gz -O openmpi-1.10.2.tar.gz
+	tar -xzf openmpi-1.10.2.tar.gz
+	mkdir -p /tmp/openmpi-1.10.2/build
+	cd /tmp/openmpi-1.10.2/build
+	../configure --prefix=/usr --with-slurm --enable-shared --enable-mpi-thread-multiple --with-verbs --enable-mpirun-prefix-by-default --with-hwloc --disable-dlopen --with-pmi --with-pmi-libdir=/usr/lib/x86_64-linux-gnu
+	make clean
+	make all install
+	export LD_LIBRARY_PATH=/usr/local/lib:
+	# Create some folders
+	mkdir -p /host/mpi /scratch /tmp /home /opt/cesga /mnt /usr/local/openmpi /usr/lib64/slurm /opt/mellanox /host/lib64 /host/filtered/lib64 /host/usr/lib64 /host/filtered/usr/lib64 /etc/libibverbs.d /run/munge /etc/slurm /.singularity.d/libs
+	# Last 
+        echo "driver mlx4" > /etc/libibverbs.d/mlx4.driver
+        echo "driver mlx5" > /etc/libibverbs.d/mlx5.driver
+        adduser slurm || echo "User exists"
+        cat /etc/usr_lib64.txt | xargs -I{} ln -fs /host/usr/lib64/{} /host/filtered/usr/lib64/{}
+        cat /etc/lib64.txt | xargs -I{} ln -fs /host/lib64/{} /host/filtered/lib64/{}
+
+\end{lstlisting}
 
 
 \begin{thebibliography}{9}
