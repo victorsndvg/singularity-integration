@@ -1051,9 +1051,248 @@ IncludeCmd: yes
         adduser slurm || echo "User exists"
         cat /etc/usr_lib64.txt | xargs -I{} ln -fs /host/usr/lib64/{} /host/filtered/usr/lib64/{}
         cat /etc/lib64.txt | xargs -I{} ln -fs /host/lib64/{} /host/filtered/lib64/{}
-
 \end{lstlisting}
 
+\subsection{Generic calling script}
+
+To have a way to reserve resources, call and execute multiple executions of the same program, in order to be able to execute the possible combinations, a bash script was written that automated the whole process. Although it may seem long, we only have to consider these aspects:
+\begin{itemize}
+\item There are three distinct areas
+\begin{enumerate}
+\item \textbf{DEBUGGING MODE}: If we call the script with the \verb|--debug| option, it will print on the screen the employed compilers as well as the path where the host libraries are ubicated.
+\item \textbf{FUNCTIONS}: It only contains a function which shows in a more readable way the separation between the tests.
+\item \textbf{MAIN}: The script itself. It is responsible for correctly fitting all possible combinations of Open MPI versions inside and outside the container as well as the available external compilers. It is a little complicated because in Finis Terrae II the software installation have not always been done in the same way. Thus, Open MPI versions 2.0.2 and 2.1.1 made use of Easybuild, so its installation directory changes substantially.
+\end{enumerate}
+\item This script is strongly dependent on the sbatchs scripts, the ones really in charge of launching the processes in the cluster. Because of the use of variables, one has no meaning without the other and vice versa.
+\end{itemize}
+
+\begin{lstlisting}[language=bash,caption={Generic calling script}]
+#!/bin/bash
+
+#/*---- DEBUGGING MODE ----*/
+DEBUG=false
+if [ $# -eq 1 ]; then
+   for arg in "$@"; do
+      if [ "$arg" == "--debug" ]; then
+         DEBUG=true
+      fi
+   done
+fi
+
+
+#/*---- FUNCTIONS ----*/
+printfCenter() {
+   termwidth="$(tput cols)"
+   padding="$(printf '%0.1s' ={1..500})"
+   printf '%*.*s %s %*.*s\n' 0 "$(((termwidth-2-${#1})/2))" "$padding" "$1" 0 "$(((termwidth-1-${#1})/2))" "$padding"
+}
+
+
+#/*---- MAIN ----*/
+export HOST_LIBS=/path/to/host-libs/
+CONTAINER_OPEN_MPI_VERSIONS=( "1.10.2" "2.0.0" "2.0.1" "2.0.2" "2.1.1" )
+
+# NO EASYBUILD VERSION ( 1.10.2 | 2.0.0 | 2.0.1 )
+OPEN_MPI_VERSIONS=( "1.10.2" "2.0.0" "2.0.1" )
+COMPILER=gcc; export COMPILER=$COMPILER
+for OPEN_MPI_VERSION in "${OPEN_MPI_VERSIONS[@]}"; do
+   export OPEN_MPI_VERSION=$OPEN_MPI_VERSION
+   if [ "$OPEN_MPI_VERSION" = "1.10.2" ]; then
+      export LIBS_PATH=/host/filtered/lib64:/host/filtered/usr/lib64:/host/mpi/lib/ompi_1.X
+   else
+      export LIBS_PATH=/host/filtered/lib64:/host/filtered/usr/lib64:/host/mpi/lib/ompi_2.X
+   fi
+   if [ "$OPEN_MPI_VERSION" = "2.0.1" ]; then
+      COMPILER_VERSION=6.3.0
+   else
+      COMPILER_VERSION=6.1.0
+   fi
+   export COMPILER_VERSION=$COMPILER_VERSION
+   module load $COMPILER/$COMPILER_VERSION openmpi/$OPEN_MPI_VERSION singularity
+   for CONTAINER_OPEN_MPI_VERSION in "${CONTAINER_OPEN_MPI_VERSIONS[@]}"; do
+      export CONTAINER_OPEN_MPI_VERSION=$CONTAINER_OPEN_MPI_VERSION
+      printfCenter "START! FT2: $OPEN_MPI_VERSION | Container: $CONTAINER_OPEN_MPI_VERSION"
+      if [ "$DEBUG" == "true" ]; then
+         echo COMPILER=$COMPILER/$COMPILER_VERSION
+         echo LIBS_PATH=$LIBS_PATH
+      else
+         sbatch sbatch_script_1.sh
+      fi
+   done
+done
+
+
+# EASYBUILD VERSION ( 2.0.2 | 2.1.1 )
+OPEN_MPI_VERSIONS=( "2.0.2" "2.1.1" )
+export LIBS_PATH=/host/filtered/lib64:/host/filtered/usr/lib64:/host/mpi/lib/ompi_2.X
+for OPEN_MPI_VERSION in "${OPEN_MPI_VERSIONS[@]}"; do
+   export OPEN_MPI_VERSION=$OPEN_MPI_VERSION
+   if [ "$OPEN_MPI_VERSION" = "2.0.2" ]; then
+      COMPILER=gcc
+      COMPILER_VERSION=6.3.0
+      COMPILER_EASYBUILD=GCC
+      COMPILER_VERSION_EASYBUILD=6.3.0-2.27
+   else
+      COMPILER=intel
+      COMPILER_VERSION=2016
+      COMPILER_EASYBUILD=iccifort
+      COMPILER_VERSION_EASYBUILD=2016eb
+   fi
+   export COMPILER_EASYBUILD=$COMPILER_EASYBUILD
+   export COMPILER_VERSION_EASYBUILD=$COMPILER_VERSION_EASYBUILD
+   module load $COMPILER/$COMPILER_VERSION openmpi/$OPEN_MPI_VERSION singularity
+   for CONTAINER_OPEN_MPI_VERSION in "${CONTAINER_OPEN_MPI_VERSIONS[@]}"; do
+      export CONTAINER_OPEN_MPI_VERSION=$CONTAINER_OPEN_MPI_VERSION
+      printfCenter "START! FT2: $OPEN_MPI_VERSION | Container: $CONTAINER_OPEN_MPI_VERSION"
+      if [ "$DEBUG" == "true" ]; then
+         echo COMPILER=$COMPILER/$COMPILER_VERSION
+         echo LIBS_PATH=$LIBS_PATH
+      else
+         sbatch sbatch_script_2.sh
+      fi
+   done
+done
+\end{lstlisting}
+
+\subsection{Sbatch scripts}
+The following scripts are responsible for reserving resources in the cluster. Keep in mind that these must adapt it according to the container name (right now depends on a variable, but did not tend to be so). We must also adapt the number of processors, the maximum execution time, as well as the queue under we want it to run (thinnodes, \textit{cola-corta}, software, etc.)
+
+\begin{lstlisting}[language=bash,caption={Sbatch script 1}]
+#!/bin/sh
+
+#SBATCH -n 2
+#SBATCH -N 2
+#SBATCH -p thinnodes
+#SBATCH -t 00:10:30
+
+if srun singularity exec \
+-B /lib64:/host/lib64 \
+-B /usr/lib64:/host/usr/lib64 \
+-B $HOST_LIBS/lib64:/host/filtered/lib64 \
+-B $HOST_LIBS/usr/lib64:/host/filtered/usr/lib64 \
+-B /opt/cesga/openmpi/$OPEN_MPI_VERSION/$COMPILER/$COMPILER_VERSION/lib:/.singularity.d/libs \
+-B $HOST_LIBS/mpi:/host/mpi \
+-B /opt/cesga:/opt/cesga \
+-B /usr/lib64/slurm:/usr/lib64/slurm \
+-B /etc/slurm:/etc/slurm \
+-B /var/run/munge:/run/munge \
+-B /etc/libibverbs.d:/etc/libibverbs.d \
+-B /mnt:/mnt \
+ubuntu."$CONTAINER_OPEN_MPI_VERSION".img bash -c "export LD_LIBRARY_PATH=$LIBS_PATH:\$LD_LIBRARY_PATH; program-name"
+\end{lstlisting}
+
+\begin{lstlisting}[language=bash,caption={Sbatch script 2}]
+#!/bin/sh
+
+#SBATCH -n 2
+#SBATCH -N 2
+#SBATCH -p thinnodes
+#SBATCH -t 00:10:30
+
+if srun singularity exec \
+-B /lib64:/host/lib64 \
+-B /usr/lib64:/host/usr/lib64 \
+-B $HOST_LIBS/lib64:/host/filtered/lib64 \
+-B $HOST_LIBS/usr/lib64:/host/filtered/usr/lib64 \
+-B /opt/cesga/easybuild/software/OpenMPI/$OPEN_MPI_VERSION-$COMPILER_EASYBUILD-$COMPILER_VERSION_EASYBUILD/lib:/.singularity.d/libs \
+-B $HOST_LIBS/mpi:/host/mpi \
+-B /opt/cesga:/opt/cesga \
+-B /usr/lib64/slurm:/usr/lib64/slurm \
+-B /etc/slurm:/etc/slurm \
+-B /var/run/munge:/run/munge \
+-B /etc/libibverbs.d:/etc/libibverbs.d \
+-B /mnt:/mnt \
+ubuntu."$CONTAINER_OPEN_MPI_VERSION".img bash -c "export LD_LIBRARY_PATH=$LIBS_PATH:\$LD_LIBRARY_PATH; program-name"
+\end{lstlisting}
+
+\subsection{Host filtered libraries}
+\begin{lstlisting}[language=bash,caption={Host filtered libraries}]
+/host/filtered/
+|-- lib64
+|   |-- libnl.so.1 -> /host/lib64/libnl.so.1
+|   |-- libnl.so.1.1.4 -> /host/lib64/libnl.so.1.1.4
+|   |-- libpci.so.3 -> /host/lib64/libpci.so.3
+|   |-- libpci.so.3.1.10 -> /host/lib64/libpci.so.3.1.10
+|   |-- libslurm.la -> /host/usr/lib64/libslurm.la
+|   |-- libslurm.so -> /host/usr/lib64/libslurm.so
+|   |-- libslurm.so.28 -> /host/usr/lib64/libslurm.so.28
+|   |-- libslurm.so.28.0.0 -> /host/usr/lib64/libslurm.so.28.0.0
+|   |-- libslurmdb.la -> /host/usr/lib64/libslurmdb.la
+|   |-- libslurmdb.so -> /host/usr/lib64/libslurmdb.so
+|   |-- libslurmdb.so.28 -> /host/usr/lib64/libslurmdb.so.28
+|   `-- libslurmdb.so.28.0.0 -> /host/usr/lib64/libslurmdb.so.28.0.0
+`-- usr
+    `-- lib64
+        |-- libhwloc.so -> /host/usr/lib64/libhwloc.so
+        |-- libhwloc.so.1 -> /host/usr/lib64/libhwloc.so.1
+        |-- libhwloc.so.1.0.1 -> /host/usr/lib64/libhwloc.so.1.0.1
+        |-- libhwloc.so.5.1.0 -> /host/usr/lib64/libhwloc.so.5.1.0
+        |-- libhwloc.so.5.7.2
+        |-- libhwloc.so.5.bkp -> /host/usr/lib64/libhwloc.so.5
+        |-- libibcm.a -> /host/usr/lib64/libibcm.a
+        |-- libibcm.so -> /host/usr/lib64/libibcm.so
+        |-- libibcm.so.1 -> /host/usr/lib64/libibcm.so.1
+        |-- libibcm.so.1.0.0 -> /host/usr/lib64/libibcm.so.1.0.0
+        |-- libibdm.a -> /host/usr/lib64/libibdm.a
+        |-- libibdm.so -> /host/usr/lib64/libibdm.so
+        |-- libibdm.so.1 -> /host/usr/lib64/libibdm.so.1
+        |-- libibdm.so.1.1.1 -> /host/usr/lib64/libibdm.so.1.1.1
+        |-- libibdmcom.a -> /host/usr/lib64/libibdmcom.a
+        |-- libibdmcom.so -> /host/usr/lib64/libibdmcom.so
+        |-- libibdmcom.so.1 -> /host/usr/lib64/libibdmcom.so.1
+        |-- libibdmcom.so.1.1.1 -> /host/usr/lib64/libibdmcom.so.1.1.1
+        |-- libiberty.a -> /host/usr/lib64/libiberty.a
+        |-- libibmad.so -> /host/usr/lib64/libibmad.so
+        |-- libibmad.so.5 -> /host/usr/lib64/libibmad.so.5
+        |-- libibmad.so.5.5.0 -> /host/usr/lib64/libibmad.so.5.5.0
+        |-- libibmscli.a -> /host/usr/lib64/libibmscli.a
+        |-- libibmscli.so -> /host/usr/lib64/libibmscli.so
+        |-- libibmscli.so.1 -> /host/usr/lib64/libibmscli.so.1
+        |-- libibmscli.so.1.0.0 -> /host/usr/lib64/libibmscli.so.1.0.0
+        |-- libibnetdisc.a -> /host/usr/lib64/libibnetdisc.a
+        |-- libibnetdisc.so -> /host/usr/lib64/libibnetdisc.so
+        |-- libibnetdisc.so.5 -> /host/usr/lib64/libibnetdisc.so.5
+        |-- libibnetdisc.so.5.3.0 -> /host/usr/lib64/libibnetdisc.so.5.3.0
+        |-- libibsysapi.a -> /host/usr/lib64/libibsysapi.a
+        |-- libibsysapi.so -> /host/usr/lib64/libibsysapi.so
+        |-- libibsysapi.so.1 -> /host/usr/lib64/libibsysapi.so.1
+        |-- libibsysapi.so.1.0.0 -> /host/usr/lib64/libibsysapi.so.1.0.0
+        |-- libibumad.so -> /host/usr/lib64/libibumad.so
+        |-- libibumad.so.3 -> /host/usr/lib64/libibumad.so.3
+        |-- libibumad.so.3.1.0 -> /host/usr/lib64/libibumad.so.3.1.0
+        |-- libibverbs.so -> /host/usr/lib64/libibverbs.so
+        |-- libibverbs.so.1 -> /host/usr/lib64/libibverbs.so.1
+        |-- libibverbs.so.1.0.0 -> /host/usr/lib64/libibverbs.so.1.0.0
+        |-- liblustreapi.a -> /host/usr/lib64/liblustreapi.a
+        |-- liblustreapi.so -> /host/usr/lib64/liblustreapi.so
+        |-- libmlx4-rdmav2.so -> /host/usr/lib64/libmlx4-rdmav2.so
+        |-- libmlx4.a -> /host/usr/lib64/libmlx4.a
+        |-- libmlx5-rdmav2.so -> /host/usr/lib64/libmlx5-rdmav2.so
+        |-- libmlx5.a -> /host/usr/lib64/libmlx5.a
+        |-- libmthca-rdmav2.so -> /host/usr/lib64/libmthca-rdmav2.so
+        |-- libmunge.so.2 -> /host/usr/lib64/libmunge.so.2
+        |-- libmunge.so.2.0.0 -> /host/usr/lib64/libmunge.so.2.0.0
+        |-- libnuma.a -> /host/usr/lib64/libnuma.a
+        |-- libnuma.so -> /host/usr/lib64/libnuma.so
+        |-- libnuma.so.1 -> /host/usr/lib64/libnuma.so.1
+        |-- libpmi.la -> /host/usr/lib64/libpmi.la
+        |-- libpmi.so -> /host/usr/lib64/libpmi.so
+        |-- libpmi.so.0 -> /host/usr/lib64/libpmi.so.0
+        |-- libpmi.so.0.0.0 -> /host/usr/lib64/libpmi.so.0.0.0
+        |-- libpmi2.la -> /host/usr/lib64/libpmi2.la
+        |-- libpmi2.so -> /host/usr/lib64/libpmi2.so
+        |-- libpmi2.so.0 -> /host/usr/lib64/libpmi2.so.0
+        |-- libpmi2.so.0.0.0 -> /host/usr/lib64/libpmi2.so.0.0.0
+        |-- librdmacm.a -> /host/usr/lib64/librdmacm.a
+        |-- librdmacm.so -> /host/usr/lib64/librdmacm.so
+        |-- librdmacm.so.1 -> /host/usr/lib64/librdmacm.so.1
+        |-- librdmacm.so.1.0.0 -> /host/usr/lib64/librdmacm.so.1.0.0
+        |-- libxml2.a -> /host/usr/lib64/libxml2.a
+        |-- libxml2.so -> /host/usr/lib64/libxml2.so
+        |-- libxml2.so.2 -> /host/usr/lib64/libxml2.so.2
+        |-- libxml2.so.2.7.6 -> /host/usr/lib64/libxml2.so.2.7.6
+        `-- slurm -> /host/usr/lib64/slurm
+\end{lstlisting}
 
 \begin{thebibliography}{9}
 \bibitem{easybuild}
