@@ -1,0 +1,65 @@
+K 25
+svn:wc:ra_dav:version-url
+V 41
+/svn/talks/!svn/ver/19/mpi4PyUCR2014/code
+END
+collective.py
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/svn/talks/!svn/ver/17/mpi4PyUCR2014/code/collective.py
+END
+x.txt
+K 25
+svn:wc:ra_dav:version-url
+V 47
+/svn/talks/!svn/ver/18/mpi4PyUCR2014/code/x.txt
+END
+longX.txt
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/svn/talks/!svn/ver/19/mpi4PyUCR2014/code/longX.txt
+END
+ring.py
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/svn/talks/!svn/ver/17/mpi4PyUCR2014/code/ring.py
+END
+y.txt
+K 25
+svn:wc:ra_dav:version-url
+V 47
+/svn/talks/!svn/ver/18/mpi4PyUCR2014/code/y.txt
+END
+longY.txt
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/svn/talks/!svn/ver/19/mpi4PyUCR2014/code/longY.txt
+END
+smith-waterman.py
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svn/talks/!svn/ver/18/mpi4PyUCR2014/code/smith-waterman.py
+END
+pingpong.py
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svn/talks/!svn/ver/17/mpi4PyUCR2014/code/pingpong.py
+END
+hello.py
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/svn/talks/!svn/ver/17/mpi4PyUCR2014/code/hello.py
+END
+parallel-sw.py
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/talks/!svn/ver/19/mpi4PyUCR2014/code/parallel-sw.py
+END

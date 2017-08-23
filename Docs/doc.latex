@@ -638,7 +638,7 @@ Once the test applications passed; real world applications, built inside already
 1.10.2 & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \textcolor{red}{\xmark} \\ \hline
 \end{tabular}
 \end{table}
-As can be seen in this test, a container ompi/1.10.2 worked over 1.10.2, 2.0.0, 2.0.1 and 2.0.2 outside OpenMPI versions. Nevertheless, external ompi/2.1.1 did not work. Most robably this is because the latest version employs an Intel compiler, and not a GNU compiler as the other ones. So, for the very first time, \textbf{a compiler dependency was discovered}. In order to get reduce noise as much as possible, from this moment, they are not taken into account OpenMPI versions that have not been compiled with GNU compilers.
+As can be seen in this test, a container ompi/1.10.2 worked over 1.10.2, 2.0.0, 2.0.1 and 2.0.2 outside OpenMPI versions. Nevertheless, external ompi/2.1.1 did not work. Most robably this is because the latest version employs an Intel compiler, and not a GNU compiler as the other ones. So, for the very first time, \textbf{a compiler dependency was discovered}.
 
 \subsubsection{Fortran application: XH5For}
 \begin{table}[H]
@@ -655,6 +655,39 @@ As can be seen in this test, a container ompi/1.10.2 worked over 1.10.2, 2.0.0, 
 \end{table}
 
 Confirming the previous named dependency, the Fortran application worked over all external ompi except ompi/2.1.1, which makes use of an Intel compiler. This bahavior is observed for different container ompi versions, even when there is a one-to-one match, because the containerized application was compiled with a GNU compiler.
+
+\subsubsection{Python application: Distributed Smith-Waterman}
+
+To get the container running applications that use MPI with Python, it is necessary to install a new library, MPI4Py\cite{mpi4py}, which has followed the next process of installation and configuration inside the container.
+
+\begin{lstlisting}[language=bash,caption={Installing MPI4Py}]
+cd /tmp/
+git clone https://github.com/mpi4py/mpi4py.git
+cd mpi4py/
+# Superuser permissions needed
+python setup.py build
+python setup.py install
+cp -rf /tmp/mpi4py/ /usr/bin/
+\end{lstlisting}
+
+Since Open MPI was installed in the default directory, MPI4Py will automatically locate it and perform the configuration itself. If you have installed Open MPI in a different directory, you would need to explicitly specify the installation path.\newline
+
+Finishing the real world applications tests, a Python application was executed. It is an implementation of the Smith-Waterman algorithm\cite{smith-waterman}, adaptated to work in a distributed parallel mode. Its functioning is not very complicated, it is formed by send, receive and barrier operations. If the reader wishes, he can deepen the operation of the algorithm by consulting the employed source file\cite{smith-waterman-code}.
+
+\begin{table}[H]
+\centering
+\caption{Smith-Waterman}
+\label{Smith-Waterman}
+\begin{tabular}{|r|c|c|c|c|c|}
+\hline
+\multicolumn{1}{|c|}{Container ompi/} & \multicolumn{5}{c|}{External ompi/} \\ \hline
+\multicolumn{1}{|c|}{} & 1.10.2 & 2.0.0 & 2.0.1 & 2.0.2 & 2.1.1 \\ \hline
+1.10.2 & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} \\ \hline
+2.1.1 & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} \\ \hline
+\end{tabular}
+\end{table}
+
+Unlike the other actual tested applications, in this case the operation was correct under all external ompi combinations. It is also true that the implementation of this application is simpler compared to the previously presented, but we must keep in mind that Python is usually used for the creation of simple programs on HPC.
 
 \section{Benchmarks}
 
@@ -1054,6 +1087,18 @@ Recovered from: \url{<https://slurm.schedmd.com/>}
 \bibitem{binding}
   Using Host libraries: GPU drivers and OpenMPI BTLs [Internet] - Singularity [Quoted August 11, 2017]. 
 Recovered from: \url{<http://singularity.lbl.gov/tutorial-gpu-drivers-open-mpi-mtls>}
+
+\bibitem{mpi4py}
+  MPI for Python (MPI4Py) Official Page [Internet] [Quoted August 23, 2017]. 
+Recovered from: \url{mpi4py.scipy.org/}
+
+\bibitem{smith-waterman}
+  Smith-Waterman algorithm [Internet] - University of Southern California [Quoted August 23, 2017]. 
+Recovered from: \url{<http://dornsife.usc.edu/assets/sites/516/docs/papers/msw_papers/msw-042.pdf>}
+
+\bibitem{smith-waterman-code}
+  Smith-Waterman parallel adaptation code [Internet] - Center for Research Computing, University of Pittsburgh [Quoted August 23, 2017]. 
+Recovered from: \url{<http://coco.sam.pitt.edu/~emeneses/wp-content/uploads/2013/11/code.zip>}
 
 \bibitem{osu-microbenchmarks}
   OSU Micro Benchmarks [Internet] - MVAPICH: MPI over InfiniBand, Omni-Path, Ethernet/iWARP, and RoCE [Quoted July 24, 2017]. 

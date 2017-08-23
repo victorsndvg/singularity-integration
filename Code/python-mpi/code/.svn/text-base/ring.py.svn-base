@@ -1,0 +1,23 @@
+# University of Pittsburgh
+# Center for Simulation and Modeling (SaM)
+# Introduction to MPI with MPI4Py
+# Esteban Meneses, PhD
+# Description: ring exchange of messages between ranks. Each rank circulates its rank number until it reaches the source rank again.
+
+from mpi4py import MPI
+
+# getting basic info
+comm = MPI.COMM_WORLD
+rank = MPI.COMM_WORLD.Get_rank()
+size = MPI.COMM_WORLD.Get_size()
+name = MPI.Get_processor_name()
+
+# ring exchange between ranks
+counter = 0
+data = rank
+for x in xrange(size):
+    comm.send(data, dest=(rank+1)%size, tag=7)
+    data = comm.recv(source=(rank+size-1)%size, tag=7)
+    counter += data
+
+print("[%d] Total sum: %d" % (rank,counter))
