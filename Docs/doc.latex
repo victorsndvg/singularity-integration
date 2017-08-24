@@ -529,7 +529,7 @@ This approach was made under the \textit{srun} process manager. A exhaustive stu
 
 An extra preparation is needed in this approach. We need to create the folders where the bindings will be done, because Singularity will not automatic create them. The binding folders preparation starts with the creation of a folder hierarchy where there are included the folders where the bindings will be done as well as folders which will contain exactly the same content as the host important libraries.
 
-\begin{lstlisting}[language=bash,caption={Binding folders architecture}]
+\begin{lstlisting}[language=bash,caption={Binding folders hierarchy}]
 host
 |-- lib64
 |-- mpi
@@ -540,7 +540,16 @@ host
     `-- lib64
 \end{lstlisting}
 
-Looking at the folders hierarchy, we have copied the original host folders: \verb|/lib64|, \verb|/mpi/lib| and \verb|/usr/lib64|. The reason why there are two folders inside the \verb|/mpi/lib| directory (ompi\_1.X and ompi\_2.X) it is because several changes happen when the Open MPI version changed from 1.X to 2.X. Then, when a important dependency is found, the symbolik link is copied to the parent folder, that is where the binding is done.
+Looking at the folders hierarchy, we have copied the original host folders: \verb|/lib64|, \verb|/mpi/lib| and \verb|/usr/lib64|. The reason why there are two folders inside the \verb|/mpi/lib| directory (ompi\_1.X and ompi\_2.X) it is because several changes happen when the Open MPI version changed from 1.X to 2.X. Then, when a important dependency is found, the symbolic link is copied to the parent folder, that is where the binding is done.\newline
+
+As this approach could result a little confused to the reader, a graphic representation was done, in order to facilitate the understanding of it. This graphic representation can be observed on figure \ref{Binding approach: graphic representation}. 
+
+\begin{figure}[H]
+	\makebox[\textwidth][c]{\includegraphics[width=1.5\textwidth]{Diagrama-bindings}}%
+      \caption{Binding approach: graphic representation}
+       \label{Binding approach: graphic representation}
+\end{figure}
+
 
 \section{Binding approach: How to}
 
