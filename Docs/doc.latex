@@ -116,6 +116,15 @@ An emulator typically functions as an interpreter who reads the instructions fro
 
 Therefore, because of that problem with performance, the second premise can not be accomplished. Emulation solution does not seem to be the best.
 
+\subsection{Virtualization: Hosted approach and paravirtualization}
+In hosted approach, the virtualization layer runs on a host operating system, and virtualized servers run on it. The paravirtualization allows the use of different operating systems, but it has the great disadvantage that the entire I/O passes through all the layers, causing all of them to absorb resources and causing this I/O to become very slow. Therefore, its use is not recommended for applications with intensive I/O.
+
+In order to avoid this problem, some hosted approach products are evolving towards the paravirtualization of the I/O. In paravirtualization, we use operating systems that have been slightly modified to run in a virtualized environment, in order to replace all problematic operations. Also, the guest operating system has also been modified and uses a special API to communicate with the virtualization layer and have relatively direct access to the hardware. The purpose of the modifications is to achieve the kernel of the virtual operating system to cooperate with the kernel of the host operating system. In this case, the guest operating system is modified to use an ABI (Application Binary Interface).
+
+An example of paravirtualization might be KVM (Kernel-based Virtual Machine) or the Xen hypervisor. To clarify all terms, a hypervisor is a virtualization software, a thin layer of software that runs directly on the hardware, multiplexes the accesses of the different operating systems to the hardware, in addition to providing an environment for its control and management (the domain 0). It does not need a host operating system and under this layer virtual machines are created. The guest operating systems run on these virtual machines. Because of this, hypervisors are lighter and more efficient than the hosted approach.
+
+Currently, the evolution of Xen and KVM is to minimize the overhead created by the hypervisor and allow the virtual machines to have almost direct access to the hardware.
+
 \subsection{Virtualization of the Operating System - Containerization} 
 This type of virtualization runs only a kernel, the host, which also attends calls from virtual systems. Virtualization software (usually called a container) uses a set of libraries that translate virtual operating system calls into the appropriate format to be executed on the hardware using the host operating system. The environment provided by the container may or may not match the actual machine on which it is run. In case it does not match, the translator will be quite complex. Each container runs in its own environment, although they all share the same resources. It is possible to reallocate these resources to implement quality of service. In addition, operating system virtualization has the advantage that overhead is minimal.
 
@@ -500,42 +509,42 @@ Remember there were some important considerations to work with MPI:
   \item To support PMI, the container must support it.
 \end{itemize}
 
-We have made sure to meet all these requirements to obtain the correct operation of MPI, as indicated by the Singularity team. All containers support InfiniBand and PMI, thanks to the OFED libraries installed during the container creation process. Theoretically, under this environment, all tests made under ompi containers with a lower Open MPI version than the cluster Open MPI version employed in each moment, should work properly. However, attending to the results, we can ensure that after a series of practical tests, interversion MPI compatibility can not be obtained making simple mixes.
+We have made sure to meet all these requirements to obtain the correct operation of MPI, as indicated by the Singularity team. All containers support InfiniBand and PMI, thanks to the OFED libraries installed during the container creation process. Theoretically, under this environment, all tests made under ompi containers with a lower Open MPI version than the cluster Open MPI version employed in each moment should work properly. However, attending to the results, we can ensure that after a series of practical tests, crossversion Open MPI compatibility can not be obtained making simple mixes. After the realization of these tests, a dependency with the PMI library was detected. We also need to use exactly the same PMI version linked with the Open MPI in both, the host and the container.
 
 After this, the simple mixing approach was abandoned, and we turned into a new approach.
 
 \subsubsection{Binding libraries and its dependencies}
 \label{sec:linking}
 
-Since the previous approach, which consists of simply mixing the different MPI versions did not work, we will give it a twist and we will apply a completely different approach. Singularity containers allow us to bind some files and folders as we want to from the host. So, we will try to bind all the needed Open MPI libraries and its dependencies. Then, what we are trying to do at all is to employ exactly the same version of Open MPI inside and outside the container, what we already know it works properly. Its advantage is that it will be absolutely transparent for the final user. When a container arrive, it will be executed into a environment which will bind its Open MPI libraries to make use of the cluster MPI libraries, instead of their own. In counterpart, the big and obvious disadvantage is that the container philosophy will be corrupted. Containers will pass from use their own resources to use those what belong to the host, what supposes a solution configuration portability loss. With this I mean that if we want to use this approach on a different cluster, we must adjust the libraries binding for every unique case. However, as we execute this solution under the Finis Terrae II, it could suppose a solution that contributes with a high level of flexibility and portability. That is, the cluster should accept a big and varied quantity of containers which make use of Open MPI. Likewise, it is very important to realize that the containers alone will not represent any loss of portability under any concept. That is, the same containers that could be employed in the Finis Terrae II under this solution are perfectly usable in other clusters or machines, without requiring any direct change in them..
+Since the previous approach, which consists of simply mixing the different MPI versions did not work as expected, we will give it a twist and we will apply a completely different approach. Singularity containers allow us to bind some files and folders as we want to from the host. So, we will try to replace the Open MPI libraries inside the container, as well as all their dependencies, with the Open MPI libraries installed in the host. Then, what we are trying to do at all is to employ exactly the same version of Open MPI inside and outside the container, what we already know it works properly. With this approach we force the compatibility of the entire Open MPI environment, Open MPI itself and its dependencies.
+
+Its advantage is that it will be absolutely transparent for the final user. When a container arrive, it will be executed into a environment which will bind its Open MPI libraries to make use of the cluster Open MPI libraries, instead of their own, right inside the container. In counterpart, the big and obvious disadvantage is that the container philosophy will be corrupted. Containers will pass from use their own resources to use those what belong to the host, what supposes the custom adaptation of the container in each host to get the desired portability. With this I mean that if we want to use this approach on a different cluster, we must adjust the libraries binding for every unique case. However, as we execute this solution under the Finis Terrae II, it could suppose a solution that contributes with a high level of flexibility and portability. That is, the cluster should accept a big and varied quantity of containers which make use of Open MPI. Likewise, it is very important to realize that the containers alone will not represent any loss of portability under any concept, because the customization of the containers consists only in a hierarchy of directories where to bind the libraries. That is, the same containers that could be employed in the Finis Terrae II under this solution are perfectly usable in other clusters or machines, without requiring any direct change in them.
 
 Browsing the Singularity web we can found suggestion of how the binding should be done\cite{binding}. Although this recommendations are made for GPU drivers, Open MPI binding is named too as an alternative configuration solution. The explication is not very exhaustive, but at least it is considered by the Singularity team. Several test must be done in order to achieve the final binding solution.
 
 \paragraph{SRUN}
 \subparagraph{}
 
-This approach was made under the \textit{srun} process manager. What was done was to employ the \verb|ldd| command, which prints shared object dependencies, with the applications what make use of Open MPI libraries. So, once dependencies were obtained, we observed them carefully. Then, making use of the Singularity binding option, we bind the host libraries where the container ones must be, forcing the containers to use these libraries instead of their owns. An extra preparation is needed in this approach. We need to create the folders where the bindings will be done, because Singularity will not automatic create them.
+This approach was made under the \textit{srun} process manager. A exhaustive study has been done to detect all the Open MPI dependencies, all of them located at \verb|/lib64/| and \verb|/usr/lib64/| at the \textit{Finis Terrae II}. So, once dependencies were obtained, we observed them carefully. Then, making use of the Singularity binding option, we bind the needed host libraries where the container ones must be, forcing the containers to use these selected libraries instead of their owns. It is quite important to note that simple binding and replacing the entire directories inside the container is not the right solution as it supposes a replacement of the whole low-level library and kernel modules. We need to create an extra level of indirection with symbolik links to get control on which libraries will be reclaced inside the container.
 
-The binding folders preparation starts with the creation of a folder architecture where there are included the folders where the bindings will be done as well as folders which will contain exactly the same content as the host important libraries.
+An extra preparation is needed in this approach. We need to create the folders where the bindings will be done, because Singularity will not automatic create them. The binding folders preparation starts with the creation of a folder hierarchy where there are included the folders where the bindings will be done as well as folders which will contain exactly the same content as the host important libraries.
 
 \begin{lstlisting}[language=bash,caption={Binding folders architecture}]
 host
 |-- lib64
-|   |-- tmp
-|   `-- tmp2
 |-- mpi
 |   `-- lib
 |       |-- ompi_1.X
 |       `-- ompi_2.X
 `-- usr
     `-- lib64
-        |-- tmp
-        `-- tmp2
 \end{lstlisting}
 
-Looking at the folders architecture, we have copied the original host folders: \verb|/lib64|, \verb|/mpi/lib| and \verb|/usr/lib64|. The reason why there are two folders inside each of them (tmp and tmp2, or ompi\_1.X and ompi\_2.X) it is because several changes happen when the Open MPI version changed from 1.X to 2.X. Then, when a important dependency is found, the library is copied to the parent folder, that is where the binding is done.
+Looking at the folders hierarchy, we have copied the original host folders: \verb|/lib64|, \verb|/mpi/lib| and \verb|/usr/lib64|. The reason why there are two folders inside the \verb|/mpi/lib| directory (ompi\_1.X and ompi\_2.X) it is because several changes happen when the Open MPI version changed from 1.X to 2.X. Then, when a important dependency is found, the symbolik link is copied to the parent folder, that is where the binding is done.
 
-To understand better what was done in this approach, I will show a little example. This concrete example was done under a container ompi/2.0.1. First of all, we call ldd inside the container to find important Open MPI dependencies:
+\section{Binding approach: How to}
+
+To understand better what was done in this approach, I will show a little example. This concrete example was done under a container ompi/2.0.1. First of all, we call \verb|ldd| inside the container to find important Open MPI dependencies:
 
 \begin{lstlisting}[language=bash,caption={ldd example}]
 > ldd /usr/bin/ring
@@ -568,7 +577,7 @@ Observe to the dependency: \verb|libnuma.so.1|. This is a known MPI library depe
 
 As we found its host equivalent, we must move (or copy) it to the binding path.
 
-\begin{lstlisting}[language=bash,caption={Moving library to the binding folder}]
+\begin{lstlisting}[language=bash,caption={Moving symbolik link to the binding folder}]
 > mv host/usr/lib64/tmp2/libnuma.* host/usr/lib64/
 \end{lstlisting}
 
@@ -623,10 +632,10 @@ In addition, we must keep in mind that other applications can make use of some l
 
 Leaving aside these small possible incidents, it seems that we have come up with a solution that allows the use of different versions of Open MPI in and out of containers. This means that when any container with an application that uses MPI arrives, the cluster should be able to run it without problem, whenever it does under this environment.
 
-\subsection{Real world applications}
+\section{Real world applications}
 Once the test applications passed; real world applications, built inside already created containers, were proved. For this reason, the OpenMPI version contained could not be changed. As we achieved a solution what seems work properly, we will make use of it for these executions. That is, we will check if our solution is suitable for big and complex problems. As these containerized programs belong to real world solutions, their proper execution should suppose a quality assurement for our achieved approach. We will test programs written in the following programing languages: \textit{C++}, \textit{Fortran} and \textit{Python}. All them were executed under two distributed nodes.
 
-\subsubsection{C++ application: Feel++}
+\subsection{C++ application: Feel++}
 \begin{table}[H]
 \centering
 \caption{Feel++}
@@ -640,7 +649,7 @@ Once the test applications passed; real world applications, built inside already
 \end{table}
 As can be seen in this test, a container ompi/1.10.2 worked over 1.10.2, 2.0.0, 2.0.1 and 2.0.2 outside OpenMPI versions. Nevertheless, external ompi/2.1.1 did not work. Most robably this is because the latest version employs an Intel compiler, and not a GNU compiler as the other ones. So, for the very first time, \textbf{a compiler dependency was discovered}.
 
-\subsubsection{Fortran application: XH5For}
+\subsection{Fortran application: XH5For}
 \begin{table}[H]
 \centering
 \caption{XH5For}
@@ -656,7 +665,7 @@ As can be seen in this test, a container ompi/1.10.2 worked over 1.10.2, 2.0.0, 
 
 Confirming the previous named dependency, the Fortran application worked over all external ompi except ompi/2.1.1, which makes use of an Intel compiler. This bahavior is observed for different container ompi versions, even when there is a one-to-one match, because the containerized application was compiled with a GNU compiler.
 
-\subsubsection{Python application: Distributed Smith-Waterman}
+\subsection{Python application: Distributed Smith-Waterman}
 
 To get the container running applications that use MPI with Python, it is necessary to install a new library, MPI4Py\cite{mpi4py}, which has followed the next process of installation and configuration inside the container.
 
