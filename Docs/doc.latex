@@ -1,5 +1,9 @@
 \documentclass[a4paper]{article}
 
+\addtocontents{toc}{\hfill \textbf{Page} \par}
+\setcounter{tocdepth}{4}
+\setcounter{secnumdepth}{4}
+
 \usepackage[english]{babel}
 \usepackage[utf8]{inputenc}
 \usepackage{amsmath}
@@ -37,13 +41,18 @@
 
 \begin{abstract}
 Enter a short summary here. What topic do you want to investigate and why? What experiment did you perform? What were your main results and conclusion?
-\end{abstract}
+\end{abstract} \newpage
 
-\section{Introduction 5 lines to max 1/2 page}
+\tableofcontents \newpage
+
+\section{Introduction}
 \label{sec:introduction}
-\newpage
+Throughout this document I will describe the \textbf{configuration of a container-based system}. This configuration is composed by several activities that will be done under the cloud structure of the \textit{\textbf{Supercomputing Center of Galicia (CESGA)}}. They are part of the European collaborative project \textit{"Mathematical Modeling, Simulation and Optimization for Societal Challenges with Scientific Computing (\textbf{MSO4SC})"}. This project is funded by the European Commission through the \textit{\textbf{Horizon 2020 Program}}\cite{H2020}, the European Union's largest research and innovation program.
 
-\section{Project introduction}
+Specifically, the work explained throughout this document consists of the investigation of a container-based system that contributes the operation of \textbf{MPI} libraries with different versions of those libraries inside and outside the containers, looking for the greatest possible degree of flexibility.
+Thus, I will describe the research and investigation of possible container solutions, their configuration in the cloud structure of the center making use of different approaches and the realization of multiple performance tests.
+
+\section{Project overview}
 This document, as well as all tests and obtained conclusions belong to the european collaborative project \textit{"Mathematical Modelling, Simulation and Optimization for Societal Challenges with Scientific Computing" (MSO4SC)}. A project overview could be: provide mathematical technologies and its applications for solution of societal challenges as service through an HPC oriented cloud e-infrastructure. Going into more detail, the project is defined as:\newline
 
 \say{The challenges of society show rising complexity and their solution process increasingly requires a holistic approach. It is necessary to provide decision makers with tools that allow long-term risk analysis, improvements or even optimization and control. One of the key technologies in this process is the use of mathematical Modelling, Simulation and Optimisation (MSO) methods, which have proven effective tools for solving many problems, e.g. realistic prediction of wind fields, solar radiation, air pollution and forest fires, prediction of climate change, improving the filtration process for drinking water treatment and optimization methods for intensity-modulated radiation therapy.
@@ -167,8 +176,7 @@ The Finis Terrae II host machine have a \textbf{\textit{Red Hat Enterprise Linux
 \subsection{Singularity}
 In order to understand Singularity's operation mode, some explanations will be done: 
 
-\paragraph{Process Flow}
-\subparagraph{}
+\subsubsection{Process Flow}
 The goal of Singularity is to run an application within a contained environment such as it was not contained. Thus there is a balance between what to separate and what not to separate. At present the virtualized namespaces are process, mount points, and certain parts of the contained file system.
 
 On the other hand, Singularity does not support user escalation or context changes, nor does it have a root owned daemon process managing the container namespaces. It also exec’s the process work-flow inside the container and seamlessly redirects all IO in and out of the container directly between the environments. This makes doing things like MPI, X11 forwarding, and other kinds of work tasks trivial for Singularity.\newline
@@ -191,8 +199,7 @@ When executing container commands, the Singularity process flow can be generaliz
 \end{enumerate}
 All of the above steps take approximately 15-25 thousandths of a second to run, which is fast enough to seem instantaneous. \newline
 
-\paragraph{Images}
-\subparagraph{} 
+\subsubsection{Images}
 Singularity images are single files which physically contains the container. The effect of all files existing virtually within a single image greatly simplifies sharing, copying, branching, and other management tasks.
 
 You do not need admin/sudo to use Singularity containers. You do however need admin/root access to install Singularity and to build/manage your containers and images, but to use the containers you do not need any additional privileges to run programs within it.
@@ -203,8 +210,7 @@ Singularity automatically tries to resolve directory mounts such that things wil
 
 Note that depending on kernel version, if Singularity version is below 2.3.1, there is a caveat in that a directory must already exist within your container to serve as a mount point. If that directory does not exist, Singularity will not create it for you! You must do that.
 
-\paragraph{Resources sharing}
- \subparagraph{}
+\subsubsection{Resources sharing}
 Singularity does no network isolation because it is designed to run like any other application on the
 system. It has all of the same networking privileges as any program running as that user.
 
@@ -216,12 +222,7 @@ Singularity also allows you to leverage the resources of whatever host you are o
 \item No root owned daemon processes
 \end{itemize}
 
-\paragraph{Glibc}
-\subparagraph{}
-There is also some level of glibc forward compatibility that must be taken into consideration for any container system. For example, I can take a Centos-5 container and run it on Centos-7, but I can not take a Centos-7 container and run it on Centos-5. So, If you require kernel dependent features, a container platform is probably not the right solution for you.
-
-\paragraph{Bootstrap}
-\subparagraph{}
+\subsubsection{Bootstrap}
 Bootstrapping is the process where we install an operating system and then configure it appropriately for a specified need. To do this we use a bootstrap definition file which is a recipe of how to specifically build the container.
 
 The bootstrap command is useful for creating a new bootstrap or modifying an existing one using a definition file that describes how to build the container.\newline
@@ -244,8 +245,7 @@ The Bootstrap: keyword Identifies the singularity module (yum, debootstrap, arch
 Since Singularity operation should already be clear, only the Singularity versions used can be indicated: In the \textbf{local machine}, where root permissions are available, the Singularity version employed is \textbf{2.3-dist}. The Singularity version available on the \textbf{cluster} is \textbf{Singularity 2.2.1}.
 
 \subsection{MPI}
-\paragraph{Libraries}
-\subparagraph{}
+\subsubsection{Libraries}
 Since it is intended to use MPI, libraries will be used to enable this task. The selection of these libraries was done just checking those already installed on the cluster. The main efforts were put in the properly work of Open MPI, but some tests were done with Intel MPI too. This is the list with the MPI libraries and versions which are available on the cluster:
 \begin{itemize}
 \item Open MPI
@@ -263,8 +263,7 @@ Since it is intended to use MPI, libraries will be used to enable this task. The
   \end{itemize}
 \end{itemize}
 
-\paragraph{MPI Singularity integration}
-\subparagraph{}
+\subsubsection{MPI Singularity integration}
 As Singularity is the final selected technology selection to manage containers at Finis Terrae II, its relation with High Performance Computing will be enlarged. The most critical point is the correct use of MPI. \newline
 
 Singularity developers ensure that their product has the ability to properly integrate with the Message Passing Interface (MPI)\cite{mpi-singularity}: \textit{"Work has already been done for out of the box compatibility with Open MPI (both in Open MPI v2.1.x as well as part of Singularity)."} Later in this document this will be tested. \newline
@@ -341,7 +340,7 @@ In this example, Open MPI versions 2.0.2 and 2.1.1 are available, so we can inst
 What was done in the final approach was to prepare different containers with exactly the same Operating System and installed on each one a different version of Open MPI, but this time, downloaded from the Open MPI official page. The selected distribution was Ubuntu 16.04.2 LTS (Ubuntu Xenial) because it is the current distribution provided by the Docker Hub if a Ubuntu container is requested (without indicating the version).
 The way Open MPI is downloaded and installed was automatized in a bash script ...
 
-\subsection{Available compilers}
+\subsection{Employed compilers}
 Adding a new variable to the problem, the employed compiler in the cluster must be taken into account. The cluster has a good battery of different compilers, that is:
 \begin{itemize}
 \item GNU compilers
@@ -540,7 +539,9 @@ host
     `-- lib64
 \end{lstlisting}
 
-Looking at the folders hierarchy, we have copied the original host folders: \verb|/lib64|, \verb|/mpi/lib| and \verb|/usr/lib64|. The reason why there are two folders inside the \verb|/mpi/lib| directory (ompi\_1.X and ompi\_2.X) it is because several changes happen when the Open MPI version changed from 1.X to 2.X. Then, when a important dependency is found, the symbolic link is copied to the parent folder, that is where the binding is done.\newline
+Looking at the folders hierarchy, we have copied the original host folders: \verb|/lib64|, \verb|/mpi/lib| and \verb|/usr/lib64|. The reason why there are two folders inside the \verb|/mpi/lib| directory (ompi\_1.X and ompi\_2.X) it is because several changes happen when the Open MPI version changed from 1.X to 2.X. One prove of these several changes is reflected in the backward compatibility loss in the Application Binary Interface (ABI). If the reader wishes, he can track this compatibility loss making use of the ABI tracker tool\cite{ABI-tracker}.
+
+Then, when a important dependency is found, the symbolic link is copied to the parent folder, that is where the binding is done.\newline
 
 As this approach could result a little confused to the reader, a graphic representation was done in order to facilitate the understanding of it. This graphic representation can be observed on figure \ref{Binding approach: graphic representation}.
 
@@ -551,7 +552,7 @@ Turning into the container, there is an important folder called \verb|/host/|, w
 Those symbolic links are represented by discontinuous lines, while the bindings are represented by the continuous ones.
 
 \begin{figure}[H]
-	\makebox[\textwidth][c]{\includegraphics[width=1.5\textwidth]{Diagrama-bindings}}%
+	\makebox[\textwidth][c]{\includegraphics[width=1.3\textwidth]{Diagrama-bindings}}%
       \caption{Binding approach: graphic representation}
        \label{Binding approach: graphic representation}
 \end{figure}
@@ -655,6 +656,8 @@ As can be seen at the table above, once all the involved libraries and its depen
 In addition, we must keep in mind that other applications can make use of some libraries that the test program has not done. In that case, we should repeat all the above steps to cover all dependencies again.
 
 Leaving aside these small possible incidents, it seems that we have come up with a solution that allows the use of different versions of Open MPI in and out of containers. This means that when any container with an application that uses MPI arrives, the cluster should be able to run it without problem, whenever it does under this environment.
+
+All the scripts employed to achieve this final solution, as well as the filtered libraries hierarchy can be consulted on section \ref{annexes}. 
 
 \section{Real world applications}
 Once the test applications passed; real world applications, built inside already created containers, were proved. For this reason, the OpenMPI version contained could not be changed. As we achieved a solution what seems work properly, we will make use of it for these executions. That is, we will check if our solution is suitable for big and complex problems. As these containerized programs belong to real world solutions, their proper execution should suppose a quality assurement for our achieved approach. We will test programs written in the following programing languages: \textit{C++}, \textit{Fortran} and \textit{Python}. All them were executed under two distributed nodes.
@@ -814,12 +817,11 @@ To ensure the use of the InfiniBand network, the obtained values will be compare
 Once the different benchmarks were executed, it is easily observable that the obtained results under the same Open MPI version out of the container are very stable for the five Open MPI version combinations within the container. However, this does not happen when we talk about total Open MPI combinations outside the containers (although in some cases it remains completely stable). Observed this behavior, what has been done is to perform the average of the values belonging to the same version of Open MPI outside the container, to perform a comparison between the three versions of Open MPI outside the container.
 
 
-\paragraph{Latency Tests}
-\subparagraph{}
+\subsubsection{Latency Tests}
 
 The theoretical latency values of InfiniBand systems is about 160 nanoseconds. The real ones are around 6 microseconds, depending a lot on the software and firmware. So, we expect to obtain latency values around 6 microseconds.
 
-\subparagraph{osu\_latency - Latency Test} 
+\paragraph{osu\_latency - Latency Test} 
 The latency tests are carried out in a ping-pong fashion. The sender sends a message with a certain data size to the receiver and waits for a reply from the receiver. The receiver receives the message from the sender and sends back a reply with the same data size. Many iterations of this ping-pong test are carried out and average one-way latency numbers are obtained. Blocking version of MPI functions (MPI\_Send and MPI\_Recv) are used in the tests.\newline
 
 As can be shown in figure \ref{OSU Latency Test}, all tests showed very stable results regardless of the version of Open MPI used. The latency values shown are very small, less than 6 microseconds with window sizes up to 8192 bytes.
@@ -830,7 +832,7 @@ As can be shown in figure \ref{OSU Latency Test}, all tests showed very stable r
        \label{OSU Latency Test}
 \end{figure}
 
-\subparagraph{osu\_multi\_lat - Multi-pair Latency Test} This test is very similar to the latency test. However, at the same instant multiple pairs are performing the same test simultaneously. In order to perform the test across just two nodes the hostnames must be specified in block fashion. \newline
+\paragraph{osu\_multi\_lat - Multi-pair Latency Test} This test is very similar to the latency test. However, at the same instant multiple pairs are performing the same test simultaneously. In order to perform the test across just two nodes the hostnames must be specified in block fashion. \newline
 
 For the execution of this test, four cores were employed, in four different nodes. Results can be observed in figure \ref{OSU Multi-pair Latency Test}. It seems that by extending the complexity of the problem, making multiple pairs to perform the same test simultaneously, at the same instant, does not increase latency. The obtained results show one more time an extraordinary stability and a very low latency.
 \begin{figure}[H]
@@ -840,8 +842,8 @@ For the execution of this test, four cores were employed, in four different node
        \label{OSU Multi-pair Latency Test}
 \end{figure}
 
-\paragraph{Bandwidth Tests}
-\subparagraph{osu\_bw - Bandwidth Test} The bandwidth tests were carried out by having the sender sending out a fixed number (equal to the window size) of back-to-back messages to the receiver and then waiting for a reply from the receiver. The receiver sends the reply only after receiving all these messages. This process is repeated for several iterations and the bandwidth is calculated based on the elapsed time (from the time sender sends the first message until the time it receives the reply back from the receiver) and the number of bytes sent by the sender. The objective of this bandwidth test is to determine the maximum sustained date rate that can be achieved at the network level. Thus, non-blocking version of MPI functions (MPI\_Isend and MPI\_Irecv) were used in the test. \newline
+\subsubsection{Bandwidth Tests}
+\paragraph{osu\_bw - Bandwidth Test} The bandwidth tests were carried out by having the sender sending out a fixed number (equal to the window size) of back-to-back messages to the receiver and then waiting for a reply from the receiver. The receiver sends the reply only after receiving all these messages. This process is repeated for several iterations and the bandwidth is calculated based on the elapsed time (from the time sender sends the first message until the time it receives the reply back from the receiver) and the number of bytes sent by the sender. The objective of this bandwidth test is to determine the maximum sustained date rate that can be achieved at the network level. Thus, non-blocking version of MPI functions (MPI\_Isend and MPI\_Irecv) were used in the test. \newline
 
 The general behavior of this test is the expected and desired. It can be observed in figure \ref{OSU Bandwidth Test} As the window size increases, the bandwidth required for transmission is increased, until the point at which the maximum bandwidth is reached, which is near 6000 MB/s. In general, the different versions of Open MPI outside the container do not represent a differentiating factor in terms of bandwidth. However, in the central values it is possible to observe a slight advantage under the use of Open MPI 1.10.2. Anyway, in the "critical" values, which could be considered those in which the bandwidth is being consumed in its entirety, they all have the same behavior.
 \begin{figure}[H]
@@ -851,7 +853,7 @@ The general behavior of this test is the expected and desired. It can be observe
        \label{OSU Bandwidth Test}
 \end{figure}
 
-\subparagraph{osu\_bibw - Bidirectional Bandwidth Test} The bidirectional bandwidth test is similar to the bandwidth test, except that both the nodes involved send out a fixed number of back-to-back messages and wait for the reply. This test measures the maximum sustainable aggregate bandwidth by two nodes. \newline
+\paragraph{osu\_bibw - Bidirectional Bandwidth Test} The bidirectional bandwidth test is similar to the bandwidth test, except that both the nodes involved send out a fixed number of back-to-back messages and wait for the reply. This test measures the maximum sustainable aggregate bandwidth by two nodes. \newline
 
 Now, problem complexity will be increased, making both the nodes involved send out a fixed number of back-to-back messages and wait for the reply. Due to the success of the uni-directional Bandwidth test, the expected result to this test is the double value achievement, compared to the uni-directional test. Contrary to what might be expected, the behavior shown is not stable. As can be seen in figure \ref{OSU Bidirectional Bandwidth Test}, once the window size is bigger than 8192MB, results appear chaotic and without apparent sense. Version 1.10.2 appears to be the most stable, but its high scalability once the 8192MB threshold is passed can be interpreted as a bad signal too.
 \begin{figure}[H]
@@ -1033,6 +1035,7 @@ Ut eget est sem. Duis suscipit turpis sed orci mattis, sed tempus sapien rhoncus
 
 \newpage
 \section{Annexes}
+\label{annexes}
 \subsection{Bootstrap definition file}
 The following bootstrap definition file must be called with a Singularity container image in order to create a container with the latest stable  Ubuntu repo available on the Docker Hub. At the moment this lines are been written this is Ubuntu 16.04.2 LTS (Ubuntu Xenial). This container will install Open MPI, downloading it from its official page (not from repositories). In this concrete case, it will be installed ompi/1.10.2, but simply change the version number on the necessary lines to download and configure another version.\newline
 
@@ -1188,7 +1191,7 @@ done
 \end{lstlisting}
 
 \subsection{Sbatch scripts}
-The following scripts are responsible for reserving resources in the cluster. Keep in mind that these must adapt it according to the container name (right now depends on a variable, but did not tend to be so). We must also adapt the number of processors, the maximum execution time, as well as the queue under we want it to run (thinnodes, \textit{cola-corta}, software, etc.)
+The following scripts are responsible for reserving resources in the cluster. Keep in mind that these must adapt it according to the container name (right now depends on a variable, but it did not tend to be so). We must also adapt the number of processors, the maximum execution time, as well as the queue under we want it to run (thinnodes, \textit{cola-corta}, software, etc.)
 
 \begin{lstlisting}[language=bash,caption={Sbatch script 1}]
 #!/bin/sh
@@ -1238,7 +1241,7 @@ if srun singularity exec \
 ubuntu."$CONTAINER_OPEN_MPI_VERSION".img bash -c "export LD_LIBRARY_PATH=$LIBS_PATH:\$LD_LIBRARY_PATH; program-name"
 \end{lstlisting}
 
-\subsection{Host filtered libraries}
+\subsection{Host binded and filtered libraries}
 \begin{lstlisting}[language=bash,caption={Host filtered libraries}]
 /host/filtered/
 |-- lib64
@@ -1328,6 +1331,11 @@ ubuntu."$CONTAINER_OPEN_MPI_VERSION".img bash -c "export LD_LIBRARY_PATH=$LIBS_P
 \end{lstlisting}
 
 \begin{thebibliography}{9}
+
+\bibitem{H2020}
+  Horizon 2020 - The EU Framework Programme for Research and Innovation [Internet] [Quoted August 03, 2017]. 
+Recovered from: \url{<https://ec.europa.eu/programmes/horizon2020/>}
+
 \bibitem{easybuild}
   Easybuild [Internet] - EasyBuild: building software with ease. [Quoted August 03, 2017]. 
 Recovered from: \url{<https://easybuilders.github.io/easybuild/>}
@@ -1359,6 +1367,10 @@ Recovered from: \url{<https://slurm.schedmd.com/>}
 \bibitem{binding}
   Using Host libraries: GPU drivers and OpenMPI BTLs [Internet] - Singularity [Quoted August 11, 2017]. 
 Recovered from: \url{<http://singularity.lbl.gov/tutorial-gpu-drivers-open-mpi-mtls>}
+
+\bibitem{ABI-tracker}
+  Open MPI API/ABI changes review [Internet] - ABI tracker project [Quoted August 25, 2017]. 
+Recovered from: \url{<https://abi-laboratory.pro/tracker/timeline/openmpi/>}
 
 \bibitem{mpi4py}
   MPI for Python (MPI4Py) Official Page [Internet] [Quoted August 23, 2017]. 
