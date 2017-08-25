@@ -525,7 +525,7 @@ Browsing the Singularity web we can found suggestion of how the binding should b
 \paragraph{SRUN}
 \subparagraph{}
 
-This approach was made under the \textit{srun} process manager. A exhaustive study has been done to detect all the Open MPI dependencies, all of them located at \verb|/lib64/| and \verb|/usr/lib64/| at the \textit{Finis Terrae II}. So, once dependencies were obtained, we observed them carefully. Then, making use of the Singularity binding option, we bind the needed host libraries where the container ones must be, forcing the containers to use these selected libraries instead of their owns. It is quite important to note that simple binding and replacing the entire directories inside the container is not the right solution as it supposes a replacement of the whole low-level library and kernel modules. We need to create an extra level of indirection with symbolik links to get control on which libraries will be reclaced inside the container.
+This approach was made under the \textit{srun} process manager. A exhaustive study has been done to detect all the Open MPI dependencies, all of them located at \verb|/lib64/| and \verb|/usr/lib64/| at the \textit{Finis Terrae II}. So, once dependencies were obtained, we observed them carefully. Then, making use of the Singularity binding option, we bind the needed host libraries where the container ones must be, forcing the containers to use these selected libraries instead of their owns. It is quite important to note that simple binding and replacing the entire directories inside the container is not the right solution as it supposes a replacement of the whole low-level library and kernel modules. We need to create an extra level of indirection with symbolic links to get control on which libraries will be replaced inside the container.
 
 An extra preparation is needed in this approach. We need to create the folders where the bindings will be done, because Singularity will not automatic create them. The binding folders preparation starts with the creation of a folder hierarchy where there are included the folders where the bindings will be done as well as folders which will contain exactly the same content as the host important libraries.
 
@@ -542,13 +542,28 @@ host
 
 Looking at the folders hierarchy, we have copied the original host folders: \verb|/lib64|, \verb|/mpi/lib| and \verb|/usr/lib64|. The reason why there are two folders inside the \verb|/mpi/lib| directory (ompi\_1.X and ompi\_2.X) it is because several changes happen when the Open MPI version changed from 1.X to 2.X. Then, when a important dependency is found, the symbolic link is copied to the parent folder, that is where the binding is done.\newline
 
-As this approach could result a little confused to the reader, a graphic representation was done, in order to facilitate the understanding of it. This graphic representation can be observed on figure \ref{Binding approach: graphic representation}. 
+As this approach could result a little confused to the reader, a graphic representation was done in order to facilitate the understanding of it. This graphic representation can be observed on figure \ref{Binding approach: graphic representation}.
+
+We have two important blocks: the host and the container, being this last one hosted by the first one in some folder. Both of them are Linux-based systems, so they have the typically Linux folder hierarchy. In the host, we can observe an important folder called \verb|"filtered"|, where we had copied carefully those symbolic links to the libraries that we will use to do indirections. They where copied from the original \verb|/lib64/| and \verb|/usr/lib64/| folders of the host.
+
+Turning into the container, there is an important folder called \verb|/host/|, which is no more than the binding of the previously called host folders. Inside it, we can observe the \verb|filtered| folder, where now the symbolic links make sense, and its libraries substitute now to the normal ones by symbolic links.
+
+Those symbolic links are represented by discontinuous lines, while the bindings are represented by the continuous ones.
 
 \begin{figure}[H]
 	\makebox[\textwidth][c]{\includegraphics[width=1.5\textwidth]{Diagrama-bindings}}%
       \caption{Binding approach: graphic representation}
        \label{Binding approach: graphic representation}
 \end{figure}
+
+Explaining the figure \ref{Binding approach: graphic representation} in a more structured way, this is what we do:
+\begin{enumerate}
+\item Bind the Open MPI libraries and their dependencies located at \verb|/usr| and \verb|/lib64| (continuous lines).
+\item Create directories with symbolic links to the selected libraries. These links will be properly solved inside the container (the \verb|"filtered"| folder).
+\item Bind directories with symbolic links (discontinuous lines).
+\item Export \verb|LD_LIBRARY_PATH| prepending the binded Open MPI libraries, dependencies and directories with symbolic links.
+\end{enumerate}
+
 
 
 \section{Binding approach: How to}
@@ -596,7 +611,7 @@ Now the library is inside the folder which will be binded, the container will us
 > ls -lia /host/usr/lib64/libnuma.so.1
 \end{lstlisting}
 
-In addition, it is sometimes necessary to create links between files, because the library is not directly linking to the version of the library that we need. For example, for the libmpi library there are numerous versions that we would already have prepared thanks to binding.
+In addition, it is sometimes necessary to create links between files, because the library is not directly linking to the version of the library that we need. For example, for the \verb|libmpi| library there are numerous versions that we would already have prepared thanks to binding.
 
 \begin{lstlisting}[language=bash,caption={Multiple library versions}]
 > find . -iname libmpi.*
