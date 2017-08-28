@@ -47,10 +47,10 @@ Enter a short summary here. What topic do you want to investigate and why? What 
 
 \section{Introduction}
 \label{sec:introduction}
-Throughout this document I will describe the \textbf{configuration of a container-based system}. This configuration is composed by several activities that will be done under the cloud structure of the \textit{\textbf{Supercomputing Center of Galicia (CESGA)}}. They are part of the European collaborative project \textit{"Mathematical Modeling, Simulation and Optimization for Societal Challenges with Scientific Computing (\textbf{MSO4SC})"}. This project is funded by the European Commission through the \textit{\textbf{Horizon 2020 Program}}\cite{H2020}, the European Union's largest research and innovation program.
+Throughout this document I will describe the \textbf{configuration of a containers-based system}. This configuration is composed by several activities that will be done under the cloud structure of the \textit{\textbf{Supercomputing Center of Galicia (CESGA)}}. They are part of the European collaborative project \textit{"Mathematical Modeling, Simulation and Optimization for Societal Challenges with Scientific Computing (\textbf{MSO4SC})"}\cite{MSO4SC}. This project is funded by the European Commission through the E-INFRA \textit{\textbf{Horizon 2020 Program}}\cite{H2020}, the European Union's largest research and innovation program.
 
-Specifically, the work explained throughout this document consists of the investigation of a container-based system that contributes the operation of \textbf{MPI} libraries with different versions of those libraries inside and outside the containers, looking for the greatest possible degree of flexibility.
-Thus, I will describe the research and investigation of possible container solutions, their configuration in the cloud structure of the center making use of different approaches and the realization of multiple performance tests.
+Specifically, the work explained throughout this document consists of the investigation of a containers-based system that contributes the operation of \textbf{MPI} libraries with different versions of those libraries inside and outside the containers, looking for the greatest possible degree of flexibility.
+Thus, I will describe the research of possible container solutions, their configuration in the cloud structure of the center making use of different approaches and the realization of multiple performance tests.
 
 \section{Project overview}
 This document, as well as all tests and obtained conclusions belong to the european collaborative project \textit{"Mathematical Modelling, Simulation and Optimization for Societal Challenges with Scientific Computing" (MSO4SC)}. A project overview could be: provide mathematical technologies and its applications for solution of societal challenges as service through an HPC oriented cloud e-infrastructure. Going into more detail, the project is defined as:\newline
@@ -90,7 +90,7 @@ The cluster is connected to a shared Lustre High-performance Filesystem with 768
 
 \section{Research motivation}
 \label{sec:motivation}
-Traditional software deployment performed in HPCs present some issues which make it very inflexible. Different approaches, like could be the containerization technology, can provide an interesting alternative that is more flexible with very little impact on performance.
+Traditional software deployment performed in HPCs presents some issues which make it very inflexible. Different approaches, like could be the containerization technology, can provide an interesting alternative that is more flexible with very little impact on performance.
 
 Traditional software deployment and integration consists in performing all the needed steps, like download, configure, build, test and install, to have the software project natively in a production infrastructure. The main goal of this task is to provide the software with good performance and ready to use for end users.
 
@@ -121,7 +121,11 @@ It is very important to always keep in mind these premises, since they are the o
 Thus, some common virtualization solutions are:
 
 \subsection{Emulation}
-An emulator typically functions as an interpreter who reads the instructions from the virtual operating system (guest) and translates them into instructions that can run smoothly on the host operating system. In this way the emulator provides the virtual operating system with a simulated execution environment. The emulator itself runs like any other application on the host operating system. The emulated hardware may or may not match the actual machine on which the emulator is running. Emulators recreate a complete environment, including all CPU instructions and I/O devices using software, which is why performance is deeply affected.
+An emulator typically functions as an interpreter who reads the instructions from the virtual operating system (guest) and translates them into instructions that can run smoothly on the host operating system. In this way the emulator provides the virtual operating system with a simulated execution environment. The emulator itself runs like any other application on the host operating system. The emulated hardware may or may not match the actual machine on which the emulator is running. Emulators recreate a complete environment, including all CPU instructions and I/O devices using software, which is why performance is deeply affected. 
+
+In addition, the use of emulators implies by definition the limitation of the resources available to each machine. That is, whenever we define a virtual machine, we must assign to it a series of resources such as the number of processors, the size of RAM to be used, etc. These resources will be unique to each machine, making the balancing of available resources in the cluster complicated. That is, once a machine is created with certain associated resources, these resources will be exclusive and appropriative, so if the machine does not use them to their fullest (something certainly complicated that happens at all times), resources will be underutilized.
+
+Finally, we must take into account that all these peculiarities of the emulation will lead to a rather slow deployment, due to the creation of the machine and allocation of own resources in each case. This slow deployment is unacceptable.
 
 Therefore, because of that problem with performance, the second premise can not be accomplished. Emulation solution does not seem to be the best.
 
@@ -134,7 +138,9 @@ An example of paravirtualization might be KVM (Kernel-based Virtual Machine) or 
 
 Currently, the evolution of Xen and KVM is to minimize the overhead created by the hypervisor and allow the virtual machines to have almost direct access to the hardware.
 
-\subsection{Virtualization of the Operating System - Containerization} 
+So, as many of the scientific software that will be employed under the future deployment solution will make use of intensive I/O, virtualization solution does not seem to be the best, until it is better than emulation. One more time, in order to respect the second premise, this solution will be discarded.
+
+\subsection{Virtualization of the Operating System: Containerization} 
 This type of virtualization runs only a kernel, the host, which also attends calls from virtual systems. Virtualization software (usually called a container) uses a set of libraries that translate virtual operating system calls into the appropriate format to be executed on the hardware using the host operating system. The environment provided by the container may or may not match the actual machine on which it is run. In case it does not match, the translator will be quite complex. Each container runs in its own environment, although they all share the same resources. It is possible to reallocate these resources to implement quality of service. In addition, operating system virtualization has the advantage that overhead is minimal.
 
 Therefore, this is a solution that allows flexibility in addition to a minimum overhead. 
@@ -325,8 +331,8 @@ apt-get install devscripts && rmadison openmpi-common
 \end{lstlisting}
 
 The difference between \verb|apt-cache| and \verb|rmadison| is that \verb|apt-cache| shows only the information known to the system (but can be used offline) while \verb|rmadison| shows all versions of available packages from the official repositories. Thank to that, it is possible to check if some Open MPI is already installed on a container by default or not, and the Open MPI versions available on its repositories. This allow a simple installation with aptitude, whenever the package manager is APT.
-For example, for a Kali-based container:
-\begin{lstlisting}[language=bash,caption={Open MPI versions available for Kali}]
+For example, for a Kali\_2017.2-based container:
+\begin{lstlisting}[language=bash,caption={Open MPI versions available for Kali 2017.2}]
 rmadison openmpi-common 
 openmpi-common | 1.4.5-1    | oldoldstable       | all
 openmpi-common | 1.6.5-9.1  | oldstable-kfreebsd | all
@@ -335,10 +341,12 @@ openmpi-common | 2.1.1-6    | testing            | all
 openmpi-common | 2.1.1-6    | unstable           | all
 \end{lstlisting}
 
-In this example, Open MPI versions 2.0.2 and 2.1.1 are available, so we can install them easily (e.g. \verb|apt-get install openmpi-common/2.1.1|). Multiple distributions were proved, like Debian, Ubuntu, Kali or Fedora. However, because the availability of the different versions of Open MPI in the official repositories was not as varied as expected, the approach was changed. \newline
+In this example, Open MPI versions 2.0.2 and 2.1.1 are available, so we can install them easily (e.g. \verb|apt-get install openmpi-common/2.1.1|).
 
-What was done in the final approach was to prepare different containers with exactly the same Operating System and installed on each one a different version of Open MPI, but this time, downloaded from the Open MPI official page. The selected distribution was Ubuntu 16.04.2 LTS (Ubuntu Xenial) because it is the current distribution provided by the Docker Hub if a Ubuntu container is requested (without indicating the version).
-The way Open MPI is downloaded and installed was automatized in a bash script ...
+Multiple distributions were proved, like Debian, Ubuntu, Kali or Fedora. However, because the availability of the different versions of Open MPI in the official repositories was not as varied as expected, the approach was changed. \newline
+
+What was done in the final approach was to prepare different containers with exactly the same Operating System and installed on each one a different version of Open MPI, but this time, downloaded from the Open MPI official page. The selected distribution was Ubuntu 16.04.2 LTS (Ubuntu Xenial) because it is the current distribution provided by the Docker Hub by default if a Ubuntu container is requested (without indicating the version).
+The way Open MPI is downloaded and installed was automatized in a Singularity bootstrap definition file, which can be consulted in section \ref{annexes}.
 
 \subsection{Employed compilers}
 Adding a new variable to the problem, the employed compiler in the cluster must be taken into account. The cluster has a good battery of different compilers, that is:
@@ -863,7 +871,7 @@ Now, problem complexity will be increased, making both the nodes involved send o
        \label{OSU Bidirectional Bandwidth Test}
 \end{figure}
 
-\subparagraph{osu\_mbw\_mr - Multiple Bandwidth} The multi-pair bandwidth and message rate test evaluates the aggregate uni-directional bandwidth and message rate between multiple pairs of processes. Each of the sending processes sends a fixed number of messages (the window size) back-to-back to the paired receiving process before waiting for a reply from the receiver. This process is repeated for several iterations. The objective of this benchmark is to determine the achieved bandwidth and message rate from one node to another node with a configurable number of processes running on each node. \newline
+\paragraph{osu\_mbw\_mr - Multiple Bandwidth} The multi-pair bandwidth and message rate test evaluates the aggregate uni-directional bandwidth and message rate between multiple pairs of processes. Each of the sending processes sends a fixed number of messages (the window size) back-to-back to the paired receiving process before waiting for a reply from the receiver. This process is repeated for several iterations. The objective of this benchmark is to determine the achieved bandwidth and message rate from one node to another node with a configurable number of processes running on each node. \newline
 
 Now the number of cores involved in the problem will be increased. A total of four cores (belonging to four different nodes) were used. So, the waited behavior is to have two senders and two receivers, what will cause the obtaining of double the bandwidth, compared to the uni-directional test, since the result are added. Fortunately this is what it was obtained as result, as can be seen in figure \ref{OSU Multiple Bandwidth Test}.
 \begin{figure}[H]
@@ -872,7 +880,8 @@ Now the number of cores involved in the problem will be increased. A total of fo
       \caption{OSU Multiple Bandwidth Test}
        \label{OSU Multiple Bandwidth Test}
 \end{figure}
-\subparagraph{osu\_mbw\_mr - Message Rate Test}
+
+\paragraph{osu\_mbw\_mr - Message Rate Test}
 Analyzing the message rate, if we deal with small sized messages, such as those shown at the beginning of the graph \ref{OSU Message Rate Test}, a big number of them can be sent, thanks to the big bandwidth available. As its size increases, the bandwidth will not be enough to send so many. Therefore, the behavior should be approximately the reverse of the \ref{OSU Multiple Bandwidth Test} graph (understanding behavior as figure shape, not its values!). As an add-on, it can be said that for smaller sized messages as the outside Open MPI version is higher, its behavior is getting better.
 \begin{figure}[H]
 \centering
@@ -882,7 +891,7 @@ Analyzing the message rate, if we deal with small sized messages, such as those 
 \end{figure}
 
 \hr
-Now all the result test are available, it is clear that the InfiniBand network is been used, at least, in most cases. Parameters as the very low latency (6 microseconds or less) are critical to reach this conclusion. Furthermore, the obtained results are in agreement with those obtained by other teams using the same tests, like UL HPC MPI Tutorial: Building and Runnning OSU Micro-Benchmarks by the University of Luxembourg High Performance Computing (HPC) Team\cite{UL-HPC-MPI-tutorial}; Some Micro-benchmarks for HPC: 10Gb Ethernet on EC2 vs QDR Infiniband\cite{EC2-vs-QDR-Infiniband}, by Adam DeConinck, HPC Cluster Administrator at Los Alamos National Laboratory; or Implementation and comparison of RDMA over Ethernet\cite{implementation-comparison-rdma-over-ethernet}, belonging to National Security Education Center, Los Alamos National Laboratory. Reader is free to consult such documents if you want further information. \textbf{It seems that containers with different inside-outside Open MPI versions make use of the InfiniBand network, but due to some detected anomalies, the results are not completely conclusive}.
+Now all the result test are available, it is clear that the InfiniBand network is been used, at least, in most cases. Parameters as the very low latency (6 microseconds or less) are critical to reach this conclusion. Furthermore, the obtained results are in agreement with those obtained by other teams using the same tests, like UL HPC MPI Tutorial: Building and Runnning OSU Micro-Benchmarks by the University of Luxembourg High Performance Computing (HPC) Team\cite{UL-HPC-MPI-tutorial}; Some Micro-benchmarks for HPC: 10Gb Ethernet on EC2 vs QDR Infiniband\cite{EC2-vs-QDR-Infiniband}, by Adam DeConinck, HPC Cluster Administrator at Los Alamos National Laboratory; or Implementation and comparison of RDMA over Ethernet\cite{implementation-comparison-rdma-over-ethernet}, belonging to National Security Education Center, Los Alamos National Laboratory. Reader is free to consult such documents if he wants further information. \textbf{It seems that containers with different inside-outside Open MPI versions make use of the InfiniBand network, but due to some detected anomalies, the results are not completely conclusive}.
 
 \subsection{RAM benchmarks: STREAM}
 The \textit{STREAM} benchmark\cite{stream} is a simple synthetic benchmark program that measures sustainable memory bandwidth (in MB/s) and the corresponding computation rate for simple vector kernels. The reason why the \textit{STREAM} benchmark was the selected, and not another one, is because \textit{STREAM} is the de facto industry standard benchmark for measuring sustained memory bandwidth. It uses data sets much larger than the available cache on a system, which avoids large amounts of time devoted waiting for cache misses to be satisfied. Because of this reason, \textit{STREAM} documentation indicates that the value of the \verb|STREAM_ARRAY_SIZE| must be at least four times larger than the combined size of all last level caches used in the run. But this is not the only limitation to define the value of \verb|STREAM_ARRAY_SIZE|: Its size should be large enough so that the "timing calibration" output by the program is at least 20 clock-ticks. Example: most versions of Windows have a 10 millisecond timer granularity. 20 "ticks" at 10 ms/tic is 200 milliseconds. If the chip is capable of 10 GB/s, it moves 2 GB in 200 msec. This means the each array must be at least 1 GB, or 128M elements.
@@ -1030,8 +1039,16 @@ Comparing those results with the inside-outside mixed MPI execution, it is clear
 
 Therefore, despite the fact that the execution with inside-outside mixed MPI has presented a small delay, this is not of a great magnitude. In addition, this delay may occur only as a consequence of some uncontrolled noise. Therefore, we can say that the \textbf{execution with inside-outside mixed MPI is a good solution in terms of computational time, although it may not be the best.}
 
-\section{Discussion 1/2-1 page}
-Ut eget est sem. Duis suscipit turpis sed orci mattis, sed tempus sapien rhoncus. Aliquam at ex nulla. Suspendisse et lorem ornare, tincidunt eros et, dictum metus. Etiam auctor elementum enim. Fusce in convallis ex, at sagittis elit. Suspendisse auctor gravida molestie. In mi tellus, tristique quis mi sed, blandit lobortis libero. 
+\section{Discussion}
+Achieving the end of this document, we have obtained some interesting results, so it is important to remember and summarize them.\newline
+
+The main goal of this study was to obtain a possible environment solution which allow to evolve and improve sophisticated HPC scientific software with all its dependencies at a faster pace than using traditional software development and infrastructure management processes. Traditional software deployment performed in HPCs presents some issues which make it very inflexible. This traditional software deployment consists in performing all the needed steps, like download, configure, build, test and install, to have the software project natively in a production infrastructure. Therefore, the ultimate goal has been to reduce as far as possible these drawbacks of conventional development and to achieve a solution as flexible as possible.\newline
+
+After observing the possible realizable solutions, it was concluded that the one that best adapted for this concrete case consisted of a containers-based system.\newline
+
+Different approaches were proposed, since the expected response was not initially obtained. Once a possible solution was reached, efforts were made to obtain the maximum possible stability of the same, carrying out numerous tests, as well as executions of real and complex applications. After multiple test-error executions, we identified those parameters that influenced the correct functioning of the environment, such as libraries involved in MPI communication or the use of different compilers. Once these parameters were identified, the environment deployment was fully automated through scripts to obtain stable environments under which it is possible to execute the desired applications.\newline
+
+Finally, once this environment was obtained, it was tested. For this purpose, critical parameters were analyzed to determine if the solution reached a viable alternative to run the software under the Finis Terrae II cluster. Thus, we analyzed the use of CPU, RAM and network. The obtained parameters were very close to those obtained by the native execution of the same ones, reason why the loss is despicable. In addition, if we consider the time that will be saved using this novel form of software deployment, this minimal loss is more than justified.
 
 \newpage
 \section{Annexes}
@@ -1331,6 +1348,13 @@ ubuntu."$CONTAINER_OPEN_MPI_VERSION".img bash -c "export LD_LIBRARY_PATH=$LIBS_P
 \end{lstlisting}
 
 \begin{thebibliography}{9}
+
+\bibitem{MSO4SC}
+  MSO4SC: D3.1 Detailed Specifications for the Infrastructure, Cloud Management and MSO Portal [Internet] - Cemosis: Centre for modeling and simulation in Strasbourg  [Quoted August 28, 2017]. 
+Recovered from: \url{<http://book.mso4sc.cemosis.fr/deliverables/d3.1/>}
+
+\bibitem{CESGA-singularity}
+  MSO4SC: CESGA Singularity 2.2.1 Manual v0.3 - Fundación Pública Galega Centro Tecnolóxico de Supercomputación de Galicia (CESGA) [Quoted August 28, 2017]. 
 
 \bibitem{H2020}
   Horizon 2020 - The EU Framework Programme for Research and Innovation [Internet] [Quoted August 03, 2017]. 
