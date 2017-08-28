@@ -532,7 +532,7 @@ Browsing the Singularity web we can found suggestion of how the binding should b
 \paragraph{SRUN}
 \subparagraph{}
 
-This approach was made under the \textit{srun} process manager. A exhaustive study has been done to detect all the Open MPI dependencies, all of them located at \verb|/lib64/| and \verb|/usr/lib64/| at the \textit{Finis Terrae II}. So, once dependencies were obtained, we observed them carefully. Then, making use of the Singularity binding option, we bind the needed host libraries where the container ones must be, forcing the containers to use these selected libraries instead of their owns. It is quite important to note that simple binding and replacing the entire directories inside the container is not the right solution as it supposes a replacement of the whole low-level library and kernel modules. We need to create an extra level of indirection with symbolic links to get control on which libraries will be replaced inside the container.
+This approach was made under the \textit{srun} process manager. A exhaustive study has been done to detect all the Open MPI dependencies, all of them located at \verb|/lib64/| and \verb|/usr/lib64/| at the \textit{Finis Terrae II}. So, once dependencies were obtained, we observed them carefully. Then, making use of the Singularity binding option, we bind the needed host librariesº, forcing the containers to use these selected libraries instead of their owns. It is quite important to note that simple binding and replacing the entire directories inside the container is not the right solution as it supposes a replacement of the whole low-level library and kernel modules. We need to create an extra level of indirection with symbolic links to get control on which libraries will be replaced inside the container.
 
 An extra preparation is needed in this approach. We need to create the folders where the bindings will be done, because Singularity will not automatic create them. The binding folders preparation starts with the creation of a folder hierarchy where there are included the folders where the bindings will be done as well as folders which will contain exactly the same content as the host important libraries.
 
@@ -551,11 +551,11 @@ Looking at the folders hierarchy, we have copied the original host folders: \ver
 
 Then, when a important dependency is found, the symbolic link is copied to the parent folder, that is where the binding is done.\newline
 
-As this approach could result a little confused to the reader, a graphic representation was done in order to facilitate the understanding of it. This graphic representation can be observed on figure \ref{Binding approach: graphic representation}.
+As this approach could result a little confusing to the reader, a graphic representation was done in order to facilitate the understanding of it. This graphic representation can be observed on figure \ref{Binding approach: graphic representation}.
 
-We have two important blocks: the host and the container, being this last one hosted by the first one in some folder. Both of them are Linux-based systems, so they have the typically Linux folder hierarchy. In the host, we can observe an important folder called \verb|"filtered"|, where we had copied carefully those symbolic links to the libraries that we will use to do indirections. They where copied from the original \verb|/lib64/| and \verb|/usr/lib64/| folders of the host.
+We have two important blocks: the host and the container, being this last one hosted by the first one in some folder. Both of them are Linux-based systems, so they have the typically Linux folder hierarchy. In the host, we can observe an important folder called \verb|"filtered"|, where we had carefully created those symbolic links to the libraries that we will use to do indirections.
 
-Turning into the container, there is an important folder called \verb|/host/|, which is no more than the binding of the previously called host folders. Inside it, we can observe the \verb|filtered| folder, where now the symbolic links make sense, and its libraries substitute now to the normal ones by symbolic links.
+Turning into the container, there is an important folder called \verb|/host/|, which is no more than the binding of the previously called host folders. Inside it, we can observe the \verb|filtered| folder, where now the symbolic links points to existing files.
 
 Those symbolic links are represented by discontinuous lines, while the bindings are represented by the continuous ones.
 
@@ -602,19 +602,15 @@ To understand better what was done in this approach, I will show a little exampl
 Observe to the dependency: \verb|libnuma.so.1|. This is a known MPI library dependency, so it must be replaced by the host one. Then, we search its host equivalent:
 
 \begin{lstlisting}[language=bash,caption={Search host library equivalent}]
-> find . -iname libnuma.*
-	./host/usr/lib64/tmp2/libnuma.so
-	./host/usr/lib64/tmp2/libnuma.a
-	./host/usr/lib64/tmp2/libnuma.so.1
+> find / -iname libnuma.*
+	/usr/lib64/libnuma.so
+	/usr/lib64/libnuma.a
+	/usr/lib64/libnuma.so.1
 \end{lstlisting}
 
 As we found its host equivalent, we must move (or copy) it to the binding path.
 
-\begin{lstlisting}[language=bash,caption={Moving symbolik link to the binding folder}]
-> mv host/usr/lib64/tmp2/libnuma.* host/usr/lib64/
-\end{lstlisting}
-
-Now the library is inside the folder which will be binded, the container will use it instead of its own one. As we cover dependencies, we will discover new ones. We must repeat the process as many times as necessary. For this, we can use \verb|ls| with some options. For example, for the present case:
+Now the symbolic link is inside the folder which will be binded, the container will use it instead of its own one. As we cover dependencies, we will discover new ones. We must repeat the process as many times as necessary. For this, we can use \verb|ls| with some options. For example, for the present case:
 
 \begin{lstlisting}[language=bash,caption={Discovering new dependencies}]
 > ls -lia /host/usr/lib64/libnuma.so.1
