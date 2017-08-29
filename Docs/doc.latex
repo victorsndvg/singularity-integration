@@ -121,13 +121,11 @@ It is very important to always keep in mind these premises, since they are the o
 Thus, some common virtualization solutions are:
 
 \subsection{Emulation}
-An emulator typically functions as an interpreter who reads the instructions from the virtual operating system (guest) and translates them into instructions that can run smoothly on the host operating system. In this way the emulator provides the virtual operating system with a simulated execution environment. The emulator itself runs like any other application on the host operating system. The emulated hardware may or may not match the actual machine on which the emulator is running. Emulators recreate a complete environment, including all CPU instructions and I/O devices using software, which is why performance is deeply affected. 
+An emulator typically functions as an interpreter who reads the instructions from the virtual operating system (guest) and translates them into instructions that can run smoothly on the host operating system. In this way the emulator provides the virtual operating system with a simulated execution environment. The emulator itself runs like any other application on the host operating system. The emulated hardware may or may not match the actual machine on which the emulator is running. Emulators can recreate a complete environment, including all CPU instructions and I/O devices using software.
 
-In addition, the use of emulators implies by definition the limitation of the resources available to each machine. That is, whenever we define a virtual machine, we must assign to it a series of resources such as the number of processors, the size of RAM to be used, etc. These resources will be unique to each machine, making the balancing of available resources in the cluster complicated. That is, once a machine is created with certain associated resources, these resources will be exclusive and appropriative, so if the machine does not use them to their fullest (something certainly complicated that happens at all times), resources will be underutilized.
+In addition, the use of emulators implies by definition the limitation of the resources available to each machine. That is, whenever we define a virtual machine, we must assign to it a series of resources such as the number of processors, the size of RAM to be used, etc. These resources will be unique to each machine, making a complicated balancing of available resources in the cluster. That is, once a machine is created with certain associated resources, these resources will be exclusive and appropriative, so if the machine does not use them to their fullest (something certainly complicated that happens at all times), resources will be underutilized.
 
-Finally, we must take into account that all these peculiarities of the emulation will lead to a rather slow deployment, due to the creation of the machine and allocation of own resources in each case. This slow deployment is unacceptable.
-
-Therefore, because of that problem with performance, the second premise can not be accomplished. Emulation solution does not seem to be the best.
+Finally, we must take into account that all these peculiarities of the emulation will lead to a rather slow deployment, due to the creation of the machine and allocation of own resources in each case. As we require a fast deployment solution under HPC infrastructures, this slow starting up is unacceptable and the main reason why emulation solutions are rejected for this purpose.
 
 \subsection{Virtualization: Hosted approach and paravirtualization}
 In hosted approach, the virtualization layer runs on a host operating system, and virtualized servers run on it. The paravirtualization allows the use of different operating systems, but it has the great disadvantage that the entire I/O passes through all the layers, causing all of them to absorb resources and causing this I/O to become very slow. Therefore, its use is not recommended for applications with intensive I/O.
@@ -140,8 +138,10 @@ Currently, the evolution of Xen and KVM is to minimize the overhead created by t
 
 So, as many of the scientific software that will be employed under the future deployment solution will make use of intensive I/O, virtualization solution does not seem to be the best, until it is better than emulation. One more time, in order to respect the second premise, this solution will be discarded.
 
-\subsection{Virtualization of the Operating System: Containerization} 
-This type of virtualization runs only a kernel, the host, which also attends calls from virtual systems. Virtualization software (usually called a container) uses a set of libraries that translate virtual operating system calls into the appropriate format to be executed on the hardware using the host operating system. The environment provided by the container may or may not match the actual machine on which it is run. In case it does not match, the translator will be quite complex. Each container runs in its own environment, although they all share the same resources. It is possible to reallocate these resources to implement quality of service. In addition, operating system virtualization has the advantage that overhead is minimal.
+\subsection{Containerization: Operating System Virtualization} 
+This type of virtualization runs only a kernel, the host, which also attends calls from virtual systems. Virtualization software (usually called a container) uses a set of libraries that translate or redirect virtual operating system calls into the appropriate format to be executed on the hardware using the host operating system. The environment provided by the container may or may not match the actual machine on which it is run. In case it does not match, the translator will be quite complex. 
+
+Each container runs in a private and contained environment, although they share the amount of resources of the host without the need of allocation, which is a benefit comparing with virtualization. This means that same hardware can host more containers than virtual machines, although it is possible to reallocate container resources to implement quality of service. 
 
 Therefore, this is a solution that allows flexibility in addition to a minimum overhead. 
 
@@ -367,11 +367,17 @@ Adding a new variable to the problem, the employed compiler in the cluster must 
 Changing to the compiler employed into the containers, it was that one which is included per default with the selected distribution, that is it: \verb|5.4.0-6ubuntu1~16.04.4| (gcc/5.4.0).
 
 \subsection{PMI}
-TODO.
+The Process Management Interface (PMI)\cite{PMIx} has been used for quite some time as a means of exchanging wireup information needed for interprocess communication. Two versions (PMI-1 and PMI-2) have been released as part of the MPICH effort. While PMI-2 demonstrates better scaling properties than its PMI-1 predecessor, attaining rapid launch and wireup of the roughly 1M processes executing across 100k nodes expected for exascale operations remains challenging.
 
-\hr
+PMI Exascale (PMIx) represents an attempt to resolve these questions by providing an extended inter-operable version of the PMI standard specifically designed to support clusters up to and including exascale sizes. At the server side, PMIx is a part of the Open MPI run-time environment (ORTE) and the related Open Resilient Cluster Manager (ORCM). The overall objective of the project is not to branch the existing pseudo-standard definitions, in fact, PMIx fully supports both of the existing PMI-1 and PMI-2 APIs, but rather to:
+\begin{itemize}
+\item Augment and extend those APIs to eliminate some current restrictions that impact scalability.
+\item Provide a reference implementation of the PMI-server that demonstrates the desired level of scalability.
+\end{itemize}
 
-Then, what it is expected is some conflicts with some of these named variables and technologies. E.g. an application works properly under GNU compilers but not under Intel ones. This will be analyze in the following sections.
+As the latest versions of Open MPI make use of PMIx, it is expected that different versions of MPI can be used inside and outside of the container, taking advantage of its use. E.g. probably it will be impossible to get the OMPI 1.10 series to work with anything other than itself as it pre-dates PMIx, but the OMPI 2.0 and 2.1 series should work across each other as they both include PMIx 1.x.
+
+So, looking into the future, one thing could be done is try to build all OMPI versions against the same PMIx external library. This will ensure that the shared memory store in PMIx is compatible across the versions, and things should work since OMPI does not care how the data is moved across the host-container boundary.
 
 \section{Environment study}
 Now all variables have been presented, we will present the environment study in a more specific way.
@@ -1038,7 +1044,9 @@ Therefore, despite the fact that the execution with inside-outside mixed MPI has
 \section{Discussion}
 Achieving the end of this document, we have obtained some interesting results, so it is important to remember and summarize them.\newline
 
-The main goal of this study was to obtain a possible environment solution which allow to evolve and improve sophisticated HPC scientific software with all its dependencies at a faster pace than using traditional software development and infrastructure management processes. Traditional software deployment performed in HPCs presents some issues which make it very inflexible. This traditional software deployment consists in performing all the needed steps, like download, configure, build, test and install, to have the software project natively in a production infrastructure. Therefore, the ultimate goal has been to reduce as far as possible these drawbacks of conventional development and to achieve a solution as flexible as possible.\newline
+The main goal of this study was to obtain a possible environment solution which allow to evolve and improve sophisticated HPC scientific software with all its dependencies at a faster pace than using traditional software integration and deployment. \newline
+
+Traditional software integration and deployment performed in HPC systems is a time-consuming activity which relies on manual installations performed by system administrators and presents some issues which make it very inflexible. This traditional software deployment consists in performing all the needed steps, like download, configure, build, test and install, to have the software project natively in a production infrastructure. Nowadays, continuous integration, agile development methodologies and rolling releases are concepts being used in modern scientific software development. Having a HPC software up-to-date in this scenario and with traditional integration and deployment becomes a huge bottleneck.  Therefore, the ultimate goal has been to reduce as far as possible these drawbacks of conventional deployment and to achieve a solution as flexible as possible.\newline
 
 After observing the possible realizable solutions, it was concluded that the one that best adapted for this concrete case consisted of a containers-based system.\newline
 
@@ -1341,7 +1349,7 @@ ubuntu."$CONTAINER_OPEN_MPI_VERSION".img bash -c "export LD_LIBRARY_PATH=$LIBS_P
         |-- libxml2.so.2 -> /host/usr/lib64/libxml2.so.2
         |-- libxml2.so.2.7.6 -> /host/usr/lib64/libxml2.so.2.7.6
         `-- slurm -> /host/usr/lib64/slurm
-\end{lstlisting}
+\end{lstlisting} \newpage
 
 \begin{thebibliography}{9}
 
@@ -1371,6 +1379,10 @@ Recovered from: \url{<https://singularityhub.com/>}
 \bibitem{mpi-singularity}
   Singularity on HPC [Internet] - Singularity [Quoted August 04, 2017]. 
 Recovered from: \url{<http://singularity.lbl.gov/docs-hpc>}
+
+\bibitem{PMIx}
+  Process Management Interface Exascale Github Wiki [Internet] - Github [Quoted August 29, 2017]. 
+Recovered from: \url{<https://github.com/pmix/pmix/wiki>}
 
 \bibitem{ring}
   ring\_c.c code [Internet] - Open MPI (open-mpi) Github repository  [Quoted August 10, 2017]. 
