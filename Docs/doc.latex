@@ -30,7 +30,7 @@
 \newcommand{\xmark}{\ding{55}}%
 \newcommand\hr{\par\vspace{-.5\ht\strutbox}\noindent\hrulefill\par}
 
-\title{Title}
+\title{Use of parallel complex scientific applications employing the Message Passing Interface under a containerized environment.}
 
 \author{Manuel Simon Novoa}
 
@@ -39,9 +39,7 @@
 \begin{document}
 \maketitle
 
-\begin{abstract}
-Enter a short summary here. What topic do you want to investigate and why? What experiment did you perform? What were your main results and conclusion?
-\end{abstract} \newpage
+\newpage
 
 \tableofcontents \newpage
 
@@ -526,7 +524,7 @@ We have made sure to meet all these requirements to obtain the correct operation
 
 After this, the simple mixing approach was abandoned, and we turned into a new approach.
 
-\subsubsection{Binding libraries and its dependencies}
+\subsubsection{Binding libraries and their dependencies}
 \label{sec:linking}
 
 Since the previous approach, which consists of simply mixing the different MPI versions did not work as expected, we will give it a twist and we will apply a completely different approach. Singularity containers allow us to bind some files and folders as we want to from the host. So, we will try to replace the Open MPI libraries inside the container, as well as all their dependencies, with the Open MPI libraries installed in the host. Then, what we are trying to do at all is to employ exactly the same version of Open MPI inside and outside the container, what we already know it works properly. With this approach we force the compatibility of the entire Open MPI environment, Open MPI itself and its dependencies.
@@ -1054,9 +1052,73 @@ Different approaches were proposed, since the expected response was not initiall
 
 Finally, once this environment was obtained, it was tested. For this purpose, critical parameters were analyzed to determine if the solution reached a viable alternative to run the software under the Finis Terrae II cluster. Thus, we analyzed the use of CPU, RAM and network. The obtained parameters were very close to those obtained by the native execution of the same ones, reason why the loss is despicable. In addition, if we consider the time that will be saved using this novel form of software deployment, this minimal loss is more than justified.
 
+
+\section{Future work}
+In spite of having made many advances with the "Binding libraries and their dependencies" approach, it should be remembered that this is not the only approach that we have detected throughout this study. Therefore, any one of this approaches could be an interesting future object of study as long as the objectives are achieved.
+
+We will review the different characteristics of each of these approaches, analyzing their pros and cons.
+
+\subsection{"Use exactly the same Open MPI versions" approach}
+It was the first proved approach, and under it we must match exactly the same Open MPI version at the host and within the container. So, if we want to take this approach to production, we must have installed and configured all Open MPI versions at the host infrastructure.
+\begin{itemize}
+\item Pros
+  \begin{enumerate}
+  \item Containers' philosophy is not corrupted.
+  \item We can ensure 100\% ABI compatibility.
+  \end{enumerate}
+\item Cons
+  \begin{enumerate}
+  \item High system administrator iteration. The system administrator is responsible for installing every version of Open MPI at the host, as well as installing and configuring each new version that is released.
+  \item \textit{Srun} process manager is not compatible. As the container's employed process manager is \textit{mpirun}, it conflicts with the host's \textit{srun} process manager, making impossible their mix. We are forced to use mpirun if we need parallel communication.
+  \item We need to inspect every single container in order to know which Open MPI version it has installed inside. Once this is known, we can deploy at the host the exacting match version.
+  \item Inexistent interoperability.
+  \end{enumerate}
+\end{itemize}
+
+\subsection{"Binding MPI libraries and their dependencies" approach}
+This is the approach we have developed most throughout this study. It consists on replace the Open MPI libraries inside the container, as well as their dependencies, with the Open MPI libraries installed in the host, making use of the Singularity binding option. Remember several changes happen when the Open MPI version changed from 1.X to 2.X, so we need at least two Open MPI versions installed and configured at the host: a 1.10 version or lower (not less than 1.6.5), and a 2.X version. Every time the major version changes, the system administrator must install and configure an Open MPI with this new major version, and deploy an environment to the new containers that make use of these new versions.
+\begin{itemize}
+\item Pros
+  \begin{enumerate}
+  \item Medium system administrator iteration. The system administrator must install and configure at least one Open MPI version per major version available.
+  \item We can make use of the \textit{srun} process manager. This process manager is the recommended one to use.
+  \item High interoperability level.
+  \end{enumerate}
+\item Cons
+  \begin{enumerate}
+  \item Containers' philosophy is corrupted. This is no serious because containers can be employed under different environments and hosts with no changes on them. 
+  \item We can not ensure 100\% ABI compatibility. Reader can read the ABI tracker page if he wants to know more.
+  \item As it happened with the previous approach, we need to inspect every single container in order to know which Open MPI major version it has installed inside.
+  \item All containers must go through a bootstrap process to make their environment suitable for our configuration (create a series of folders, make links, etc.)
+  \end{enumerate}
+\end{itemize}
+
+\subsection{PMIx approach}
+Another possible solution to the Open MPI interoperability, and therefore to the portability of distributed applications with Singularity, has been identified. Under this approach, we will make use of PMIx as process manager at the host and within the container.
+
+The solution is promising, but at the time of this study the technologies are not mature enough. In addition, PMIx is also not supported by \textit{SLURM}, the resource manager and process manager recommended in the Finis Terrae II.
+\begin{itemize}
+\item Pros
+  \begin{enumerate}
+  \item No system administrator iteration. As all Open MPI versions will be built against the same PMIx external library, this should ensure correct functioning for their all.
+  \item No need of inspect the containers' inside.
+  \item Containers' philosophy is not corrupted.
+  \item Maximum interoperability level.
+  \end{enumerate}
+\item Cons
+  \begin{enumerate}
+  \item \textit{Srun} process manager is not compatible due to Finis Terrae II environment particularities.
+  \item All containers with old Open MPI versions inside must be rejected. Open MPI 1.10 series pre-date PMIx, so probably it will be impossible to get the series to work with anything other than itself.
+  \end{enumerate}
+\end{itemize}
+
+
 \newpage
 \section{Annexes}
 \label{annexes}
+
+This final section contains most of the code employed throughout this study, which can be useful to the reader.
+
 \subsection{Bootstrap definition file}
 The following bootstrap definition file must be called with a Singularity container image in order to create a container with the latest stable  Ubuntu repo available on the Docker Hub. At the moment this lines are been written this is Ubuntu 16.04.2 LTS (Ubuntu Xenial). This container will install Open MPI, downloading it from its official page (not from repositories). In this concrete case, it will be installed ompi/1.10.2, but simply change the version number on the necessary lines to download and configure another version.\newline
 
