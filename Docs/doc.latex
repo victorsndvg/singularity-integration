@@ -67,7 +67,7 @@ The e-infrastructure consists of an integrated MSO application catalogue contain
 \label{sec:architecture}
 The tests and executions named in the following document were launched it all under the hardware described in this section. As this research belong to the \textit{Supercomputing Center of Galicia (CESGA)}, the selected machine to perform the development was the \textit{Finis Terrae II}.
 
-\textit{Finis Terrae} is a scientific computing infrastructure managed by \textit{CESGA} and integrated in RES (the Spanish Supercomputing Network), a Spanish Unique Scientific and Technical Installation (ICTS). It is a linux based heterogeneous cluster, with an Infiniband FDR low latency network interconnecting 317 computing nodes based on Intel Xeon Hasswell processors. Each node is composed by 24 cores and has a 128GB main memory per server. The cache structure of each core is the following one:
+\textit{Finis Terrae} is a scientific computing infrastructure managed by \textit{CESGA} and integrated in RES (the Spanish Supercomputing Network), a Spanish Unique Scientific and Technical Installation (ICTS). It is a linux based heterogeneous cluster, with an InfiniBand FDR low latency network interconnecting 317 computing nodes based on Intel Xeon Hasswell processors. Each node is composed by 24 cores and has a 128GB main memory per server. The cache structure of each core is the following one:
 \begin{itemize}
 \item L1d cache: 32K
 \item L1i cache: 32K
@@ -509,7 +509,7 @@ After this, the simple mixing approach was abandoned, and we turned into a new a
 \subsubsection{Binding libraries and their dependencies}
 \label{sec:linking}
 
-Since the previous approach, which consists of simply mixing the different MPI versions did not work as expected, we will give it a twist and we will apply a completely different approach. Singularity containers allow us to bind some files and folders as we want to from the host. So, we will try to replace the Open MPI libraries inside the container, as well as all their dependencies, with the Open MPI libraries installed in the host. Then, what we are trying to do at all is to employ exactly the same version of Open MPI inside and outside the container, what we already know it works properly. With this approach we force the compatibility of the entire Open MPI environment, Open MPI itself and its dependencies.
+Since the previous approach, which consists of simply mixing the different MPI versions did not work as expected, we will give it a twist and we will apply a completely different approach. Singularity containers allow us to bind some files and folders as we want to from the host. So, we will try to prepend the Open MPI libraries inside the container, as well as all their dependencies, with the Open MPI libraries installed in the host. Then, what we are trying to do at all is to employ exactly the same version of Open MPI inside and outside the container, what we already know it works properly. With this approach we force the compatibility of the entire Open MPI environment, Open MPI itself and its dependencies.
 
 Its advantage is that it will be absolutely transparent for the final user. When a container arrive, it will be executed into a environment which will bind its Open MPI libraries to make use of the cluster Open MPI libraries, instead of their own, right inside the container. In counterpart, the big and obvious disadvantage is that the container philosophy will be corrupted. Containers will pass from use their own resources to use those what belong to the host, what supposes the custom adaptation of the container in each host to get the desired portability. With this I mean that if we want to use this approach on a different cluster, we must adjust the libraries binding for every unique case. However, as we execute this solution under the Finis Terrae II, it could suppose a solution that contributes with a high level of flexibility and portability. That is, the cluster should accept a big and varied quantity of containers which make use of Open MPI. Likewise, it is very important to realize that the containers alone will not represent any loss of portability under any concept, because the customization of the containers consists only in a hierarchy of directories where to bind the libraries. That is, the same containers that could be employed in the Finis Terrae II under this solution are perfectly usable in other clusters or machines, without requiring any direct change in them.
 
@@ -863,7 +863,7 @@ Analyzing the message rate, if we deal with small sized messages, such as those 
 \end{figure}
 
 \hr
-Now all the result test are available, it is clear that the InfiniBand network is been used. Parameters as the very low latency (6 microseconds or less) are critical to reach this conclusion. Furthermore, the obtained results are in agreement with those obtained by other teams using the same tests, like \textit{UL HPC MPI Tutorial: Building and Runnning OSU Micro-Benchmarks} by the \textit{University of Luxembourg High Performance Computing (HPC) Team}\cite{UL-HPC-MPI-tutorial}; \textit{Some Micro-benchmarks for HPC: 10Gb Ethernet on EC2 vs QDR Infiniband}\cite{EC2-vs-QDR-Infiniband}, by Adam DeConinck, HPC Cluster Administrator at \textit{Los Alamos National Laboratory}; or \textit{Implementation and comparison of RDMA over Ethernet}\cite{implementation-comparison-rdma-over-ethernet}, belonging to \textit{National Security Education Center, Los Alamos National Laboratory}. Reader is free to consult such documents if he wants further information. \textbf{It seems that containers with different inside-outside Open MPI versions make use of the InfiniBand network.}
+Now all the result test are available, it is clear that the InfiniBand network is been used. Parameters as the very low latency (6 microseconds or less) are critical to reach this conclusion. Furthermore, the obtained results are in agreement with those obtained by other teams using the same tests, like \textit{UL HPC MPI Tutorial: Building and Runnning OSU Micro-Benchmarks} by the \textit{University of Luxembourg High Performance Computing (HPC) Team}\cite{UL-HPC-MPI-tutorial}; \textit{Some Micro-benchmarks for HPC: 10Gb Ethernet on EC2 vs QDR InfiniBand}\cite{EC2-vs-QDR-InfiniBand}, by Adam DeConinck, HPC Cluster Administrator at \textit{Los Alamos National Laboratory}; or \textit{Implementation and comparison of RDMA over Ethernet}\cite{implementation-comparison-rdma-over-ethernet}, belonging to \textit{National Security Education Center, Los Alamos National Laboratory}. Reader is free to consult such documents if he wants further information. \textbf{It seems that containers with different inside-outside Open MPI versions make use of the InfiniBand network.}
 
 \subsection{RAM benchmarks: STREAM}
 The \textit{STREAM} benchmark\cite{stream} is a simple synthetic benchmark program that measures sustainable memory bandwidth (in MB/s) and the corresponding computation rate for simple vector kernels. The reason why the \textit{STREAM} benchmark was the selected, and not another one, is because \textit{STREAM} is the de facto industry standard benchmark for measuring sustained memory bandwidth. It uses data sets much larger than the available cache on a system, which avoids large amounts of time devoted waiting for cache misses to be satisfied. Because of this reason, \textit{STREAM} documentation indicates that the value of the \verb|STREAM_ARRAY_SIZE| must be at least four times larger than the combined size of all last level caches used in the run. But this is not the only limitation to define the value of \verb|STREAM_ARRAY_SIZE|: Its size should be large enough so that the "timing calibration" output by the program is at least 20 clock-ticks. Example: most versions of Windows have a 10 millisecond timer granularity. 20 "ticks" at 10 ms/tic is 200 milliseconds. If the chip is capable of 10 GB/s, it moves 2 GB in 200 msec. This means the each array must be at least 1 GB, or 128M elements.
@@ -1016,22 +1016,16 @@ Achieving the end of this document, we have obtained some interesting results, s
 
 The main goal of this study was to obtain a possible environment solution which allow to evolve and improve sophisticated HPC scientific software with all its dependencies at a faster pace than using traditional software integration and deployment. \newline
 
-Traditional software integration and deployment performed in HPC systems is a time-consuming activity which relies on manual installations performed by system administrators and presents some issues which make it very inflexible. This traditional software deployment consists in performing all the needed steps, like download, configure, build, test and install, to have the software project natively in a production infrastructure. Nowadays, continuous integration, agile development methodologies and rolling releases are concepts being used in modern scientific software development. Having a HPC software up-to-date in this scenario and with traditional integration and deployment becomes a huge bottleneck.  Therefore, the ultimate goal has been to reduce as far as possible these drawbacks of conventional deployment and to achieve a solution as flexible as possible.\newline
+Traditional software integration and deployment performed in HPC systems is a time-consuming activity which relies on manual installations performed by system administrators and presents some issues which make it very inflexible. Nowadays, continuous integration, agile development methodologies and rolling releases are concepts being used in modern scientific software development. Having a HPC software up-to-date in this scenario and with traditional integration and deployment becomes a huge bottleneck.  Therefore, the ultimate goal has been to reduce as far as possible these drawbacks of conventional deployment and to achieve a solution as flexible as possible.\newline
 
 After observing the possible realizable solutions, it was concluded that the one that best adapted for this concrete case consisted of a containers-based system.\newline
 
 Different approaches were proposed, since the expected response was not initially obtained. Once a possible solution was reached, efforts were made to obtain the maximum possible stability of the same, carrying out numerous tests, as well as executions of real and complex applications. After multiple test-error executions, we identified those parameters that influenced the correct functioning of the environment, such as libraries involved in MPI communication or the use of different compilers. Once these parameters were identified, the environment deployment was fully automated through scripts to obtain stable environments under which it is possible to execute the desired applications.\newline
 
-Finally, once this environment was obtained, it was tested. For this purpose, critical parameters were analyzed to determine if the solution reached a viable alternative to run the software under the Finis Terrae II cluster. Thus, we analyzed the use of CPU, RAM and network. The obtained parameters were very close to those obtained by the native execution of the same ones, reason why the loss is despicable. In addition, if we consider the time that will be saved using this novel form of software deployment, this minimal loss is more than justified.
-
-
-\section{Future work}
-In spite of having made many advances with the "Binding libraries and their dependencies" approach, it should be remembered that this is not the only approach that we have detected throughout this study. Therefore, any one of this approaches could be an interesting future object of study as long as the objectives are achieved.
-
-We will review the different characteristics of each of these approaches, analyzing their pros and cons.
+In spite of having made many advances with the "Binding libraries and their dependencies" approach, it should be remembered that this is not the only approach that we have detected throughout this study. Any of these approaches can be applicable as long as the objective are achieved. We will review the different characteristics of each of these approaches, analyzing their pros and cons.
 
 \subsection{"Use exactly the same Open MPI versions" approach}
-It was the first proved approach, and under it we must match exactly the same Open MPI version at the host and within the container. So, if we want to take this approach to production, we must have installed and configured all Open MPI versions at the host infrastructure.
+It was the first proved approach, and under it we must match exactly the same Open MPI version at the host and within the container. So, if we want to take this approach to production, Open MPI version must match exactly within the container and the host.
 \begin{itemize}
 \item Pros
   \begin{enumerate}
@@ -1040,51 +1034,43 @@ It was the first proved approach, and under it we must match exactly the same Op
   \end{enumerate}
 \item Cons
   \begin{enumerate}
-  \item High system administrator iteration. The system administrator is responsible for installing every version of Open MPI at the host, as well as installing and configuring each new version that is released.
+  \item High system administrator iteration. The system administrator is responsible for installing every needed version of Open MPI at the host, as well as installing and configuring each new version that is released.
   \item \textit{Srun} process manager is not compatible. As the container's employed process manager is \textit{mpirun}, it conflicts with the host's \textit{srun} process manager, making impossible their mix. We are forced to use mpirun if we need parallel communication.
-  \item We need to inspect every single container in order to know which Open MPI version it has installed inside. Once this is known, we can deploy at the host the exacting match version.
+  \item We need to inspect every single container in order to know which Open MPI version it has installed inside. Once this is known, we need to deploy the exactly match version at the host.
+  \item Container must have installed some libraries in order to use some HPC resources (libiverbs, ibutils, etc.)
   \item Inexistent interoperability.
   \end{enumerate}
 \end{itemize}
 
 \subsection{"Binding MPI libraries and their dependencies" approach}
-This is the approach we have developed most throughout this study. It consists on replace the Open MPI libraries inside the container, as well as their dependencies, with the Open MPI libraries installed in the host, making use of the Singularity binding option. Remember several changes happen when the Open MPI version changed from 1.X to 2.X, so we need at least two Open MPI versions installed and configured at the host: a 1.10 version or lower (not less than 1.6.5), and a 2.X version. Every time the major version changes, the system administrator must install and configure an Open MPI with this new major version, and deploy an environment to the new containers that make use of these new versions.
+This is the approach we have developed most throughout this study. It consists on prepend the Open MPI libraries inside the container, as well as their dependencies, with the Open MPI libraries installed in the host, making use of the Singularity binding option. Remember several changes happen when the Open MPI version changed from 1.X to 2.X, so we need at least two Open MPI versions installed and configured at the host: a 1.10 version or lower (not less than 1.6.5), and a 2.X version. Every time the major version changes, the system administrator must install and configure an Open MPI with this new major version, and deploy an environment to the new containers that make use of these new versions.
 \begin{itemize}
 \item Pros
   \begin{enumerate}
   \item Medium system administrator iteration. The system administrator must install and configure at least one Open MPI version per major version available.
-  \item We can make use of the \textit{srun} process manager. This process manager is the recommended one to use.
+  \item We can use the \textit{srun} process manager as we are using exactly the same PMI. This process manager is the recommended one to use at the Finis Terrae II.
   \item High interoperability level.
+  \item The container does not need to have installed specific hardware related libraries.
   \end{enumerate}
 \item Cons
   \begin{enumerate}
-  \item Containers' philosophy is corrupted. This is no serious because containers can be employed under different environments and hosts with no changes on them. 
-  \item We can not ensure 100\% ABI compatibility. Reader can read the ABI tracker page if he wants to know more.
-  \item As it happened with the previous approach, we need to inspect every single container in order to know which Open MPI major version it has installed inside.
+  \item Containers' philosophy is corrupted. This do not damage the containers and they can be employed under different environments and hosts with no changes on them. 
+  \item In general, we can not ensure 100\% ABI compatibility. Reader can read the ABI tracker page if he wants to know more.
+  \item Similar as it happened with the previous approach, we need to inspect every single container in order to know which Open MPI major version it has installed inside.
   \item All containers must go through a bootstrap process to make their environment suitable for our configuration (create a series of folders, make links, etc.)
   \end{enumerate}
 \end{itemize}
 
+Finally, once this environment was obtained, it was tested. For this purpose, critical parameters were analyzed to determine if the solution reached a viable alternative to run the software under the Finis Terrae II cluster. Thus, we analyzed the use of CPU, RAM and network. The obtained parameters were very close to those obtained by the native execution of the same ones, reason why the loss is despicable. In addition, if we consider the time that will be saved using this novel form of software deployment, this minimal loss is more than justified.\newline
+
+\section{Future work}
+
 \subsection{PMIx approach}
 Another possible solution to the Open MPI interoperability, and therefore to the portability of distributed applications with Singularity, has been identified. Under this approach, we will make use of PMIx as process manager at the host and within the container.
 
-The solution is promising, but at the time of this study the technologies are not mature enough. In addition, PMIx is also not supported by \textit{SLURM}, the resource manager and process manager recommended in the Finis Terrae II.
-\begin{itemize}
-\item Pros
-  \begin{enumerate}
-  \item No system administrator iteration. As all Open MPI versions will be built against the same PMIx external library, this should ensure correct functioning for their all.
-  \item No need of inspect the containers' inside.
-  \item Containers' philosophy is not corrupted.
-  \item Maximum interoperability level.
-  \end{enumerate}
-\item Cons
-  \begin{enumerate}
-  \item \textit{Srun} process manager is not compatible due to Finis Terrae II environment particularities.
-  \item All containers with old Open MPI versions inside must be rejected. Open MPI 1.10 series pre-date PMIx, so probably it will be impossible to get the series to work with anything other than itself.
-  \end{enumerate}
-\end{itemize}
+The solution is promising, but at the time of this study the technologies are not mature enough. The right functioning of these technologies, for out goals will be ready with Open MPI v.3 and PMIx v.2.1. These versions are not already released.
 
-
+In addition, PMIx is also not supported by \textit{SLURM}, the resource manager and process manager recommended in the Finis Terrae II.
 \newpage
 \section{Annexes}
 \label{annexes}
@@ -1462,8 +1448,8 @@ Recovered from: \url{<http://mvapich.cse.ohio-state.edu/static/media/mvapich/REA
   HPC workflow with MPI Parallel/Distributed jobs (OSU Microbenchmarks, HPL) [Internet] - University of Luxembourg High Performance Computing (HPC) Team [Quoted August 03, 2017]. 
 Recovered from: \url{<https://ulhpc-tutorials.readthedocs.io/en/latest/advanced/OSU_MicroBenchmarks/>}
 
-\bibitem{EC2-vs-QDR-Infiniband}
-  Some Micro-benchmarks for HPC: 10Gb Ethernet on EC2 vs QDR Infiniband [Internet] - Thinking out loud, personal Adam DeConinck blog [Quoted August 03, 2017]. 
+\bibitem{EC2-vs-QDR-InfiniBand}
+  Some Micro-benchmarks for HPC: 10Gb Ethernet on EC2 vs QDR InfiniBand [Internet] - Thinking out loud, personal Adam DeConinck blog [Quoted August 03, 2017]. 
 Recovered from: \url{<https://blog.ajdecon.org/some-micro0-benchmarks-for-hpc-10gb-ethernet-o/>}
 
 \bibitem{implementation-comparison-rdma-over-ethernet}
