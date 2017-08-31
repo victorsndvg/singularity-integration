@@ -30,7 +30,7 @@
 \newcommand{\xmark}{\ding{55}}%
 \newcommand\hr{\par\vspace{-.5\ht\strutbox}\noindent\hrulefill\par}
 
-\title{An efficient, portable and flexible container solution for fast deployment in a HPC infrastructure}
+\title{An efficient, portable and flexible container solution for fast deployment in an HPC infrastructure}
 
 \author{Manuel Simon Novoa}
 
@@ -45,9 +45,9 @@
 
 \section{Introduction}
 \label{sec:introduction}
-Throughout this document I will describe the study on an \textbf{efficient, portable and flexible container solution} for science reproducibility and HPC purposes. This research is composed by several activities that will be done under the HPC infrastructure of the \textit{\textbf{Supercomputing Center of Galicia (CESGA)}} as a member of the European collaborative project \textit{"Mathematical Modeling, Simulation and Optimization for Societal Challenges with Scientific Computing (\textbf{MSO4SC})"}\cite{MSO4SC}. This project is funded by the European Commission through the E-INFRA \textit{\textbf{Horizon 2020 Program}}\cite{H2020}, the European Union's largest research and innovation program. \newline
+Throughout this document I will describe the study on an \textbf{efficient, portable and flexible container solution} for science reproducibility and HPC purposes. This research is composed by several activities that will be done under the HPC infrastructure of the \textit{\textbf{Supercomputing Center of Galicia (CESGA)}} as a member of the European collaborative project \textit{"Mathematical Modeling, Simulation and Optimization for Societal Challenges with Scientific Computing (\textbf{MSO4SC})"}\cite{MSO4SC}. This project is funded by the European Commission through the E-INFRA \textit{\textbf{Horizon 2020 Program}}\cite{H2020}, the European Union's largest research and innovation program. 
 
-In particular, the work explained throughout this document presents the motivation why Singularity, a containerization technology, is selected, as well as a research study in order to obtain a general enough work-flow and configuration for running this solution in a HPC environment.
+In particular, the work explained throughout this document presents the motivation why Singularity, a containerization technology, is selected, as well as a research study in order to obtain a general enough work-flow and configuration for running this solution in an HPC environment.
 Thus, I will describe several approaches in order to obtain portability and flexibility for this container solution while running parallel applications, its configuration in the HPC infrastructure of the center and the realization of multiple performance tests to ensure the usage of these HPC resources.
 
 \section{Project overview}
@@ -94,7 +94,7 @@ Traditional software deployment and integration consists in performing all the n
 
 Scientific software is extremely complex from an architectural point of view. It is usually composed of numerous mathematical concepts and features implemented along several software components in order to provide high level abstraction layers. These layers can be implemented in the software project itself or integrated via third party libraries or software components. The whole environment of each scientific software is usually composed of a complex dependency matrix and, at least, one programming language and compiler.
 
-Isolation and integration of all dependency matrices at HPC clusters are traditionally managed by environment modules. Environment Modules provide a way to dynamically change the user environment through module files. Lmod, a Lua based module system, is being used at FinisTerrae II.
+Isolation and integration of all dependency matrices at HPC clusters are traditionally managed by environment modules. Environment Modules provide a way to dynamically change the user environment through module files. Lmod, a Lua based module system, is being used at Finis Terrae II.
 
 The key advantage of environment modules is that it allows to use multiple versions of a program or package from the same account by just loading the proper module file. In general, module files are created on per application per version basis. They can be dynamically loaded, unloaded, or switched. Along with the capability of using multiple versions of the same software it also can be used to implement site policies regarding the access and use of applications.
 
@@ -143,11 +143,13 @@ Each container runs in a private and contained environment, although they share 
 
 Therefore, this is a solution that allows flexibility in addition to a minimum overhead. 
 
-Although the containerization techniques is a buzzword nowadays especially in the Datacenter and Cloud industry, the idea is quite old. Container or "chroot" (change root) was a Linux technology to isolate single processes from each other without the need of emulating different hardware for them. Containers are lightweight operating systems within the Host Operating system that runs them. It uses native instructions on the core CPU, without the requirement of any VMM (Virtual Machine Manager). The only limitation is that we have to use the Host operating systems kernel to use the existing hardware components, unlike with virtualization, where we could use different operating systems without any restriction at the cost of the performance overhead. This is the key feature for the project. We could use different software, libraries even different Linux distribution without reinstalling the system. This makes HPC systems more flexible and easy to use for scientists and developers.
+Although the containerization techniques is a buzzword nowadays especially in the Datacenter and Cloud industry, the idea is quite old. Container or "chroot" (change root) was a Linux technology to isolate single processes from each other without the need of emulating different hardware for them. Containers are lightweight operating systems within the Host Operating system that runs them. It uses native instructions on the core CPU, without the requirement of any VMM (Virtual Machine Manager). The only limitation is that we have to use the Host operating systems kernel to use the existing hardware components, unlike with virtualization, where we could use different operating systems without any restriction at the cost of the performance overhead.
+
+This is the key feature for the project. We can use different software, libraries and even different Linux distributions without reinstalling the system. This makes HPC systems more flexible and easy to use for scientists and developers.
 
 Container technology has become very popular as it makes application deployment very easy and efficient. As people move from virtualization to container technology, many enterprises have adopted software container for cloud application deployment. There is a stiff competition to push different technologies in the market. Although Docker is the most popular, to choose the right technology, depending on the purpose, it is important to understand what each of them stands for and does.
 
-Several containerization technologies (like LXC, Docker, Udocker and Singularity) have been tested in the context of this project, but finally, Docker was rejected because of its kernel requirements and security. For example FinisTerrae-II does not have the kernel required by Docker. Udocker and Singularity were developed specifically to be used in HPC environments, as we will describe below. Both of them are Docker-compatible, and help to empower end-users of HPC systems providing a contained location where to manage their installations and custom software. They are also a great solution for developers, one of the biggest benefits for them is to deliver their software in a controlled environment and ready-to-use.
+Several containerization technologies (like LXC, Docker, Udocker and Singularity) have been tested in the context of this project, but finally, Docker was rejected because of its kernel requirements and security. For example Finis Terrae II does not have the kernel required by Docker. Udocker and Singularity were developed specifically to be used in HPC environments, as we will describe below. Both of them are Docker-compatible, and help to empower end-users of HPC systems providing a contained location where to manage their installations and custom software. They are also a great solution for developers, one of the biggest benefits for them is to deliver their software in a controlled environment and ready-to-use.
 
 In one hand, Udocker is a basic user tool to execute simple Docker containers in user space without requiring root privileges, which enables basic download and sequential execution of docker containers by non-privileged users in Linux systems. It can be used to access and execute the content of docker containers in Linux batch systems and interactive clusters that are managed by other entities such as grid infrastructures or externally managed batch or interactive systems.
 
@@ -166,7 +168,7 @@ The simple usage of Singularity allows users to manage the creation of new conta
        \label{Singularity work-flow at Finis Terrae II}
 \end{figure}
 
-As we can see in the previous figure, users can create or pull images from public registries (like Docker Hub\cite{dockerhub} or Singularity Hub\cite{singularityhub}), and also import images from tar pipes. Once the image is created, singularity allows to execute the container in interactive mode, and test or run any contained application using batch systems. All the work-flow can be managed by a normal user at Finis Terrae II, except the bootstrap process that needs to be called by a superuser. We can use a virtual machine with superuser privileges to modify or adapt and image to the infrastructure using the bootstrap Singularity command.
+As we can see in the previous figure, users can create or pull images from public registries (like Docker Hub\cite{dockerhub} or Singularity Hub\cite{singularityhub}), and also import images from tar pipes. Once the image is created, Singularity allows to execute the container in interactive mode, and test or run any contained application using batch systems. All the work-flow can be managed by a normal user at Finis Terrae II, except the bootstrap process that needs to be called by a superuser. We can use a virtual machine with superuser privileges to modify or adapt and image to the infrastructure using the bootstrap Singularity command.
 
 This work-flow allow an automatized integration and deployment, deriving in a very flexible and portable solution.
 
@@ -183,7 +185,7 @@ In order to understand Singularity's operation mode, some explanations will be d
 \subsubsection{Process Flow}
 The goal of Singularity is to run an application within a contained environment such as it was not contained. Thus there is a balance between what to separate and what not to separate. At present the virtualized namespaces are process, mount points, and certain parts of the contained file system.
 
-On the other hand, Singularity does not support user escalation or context changes, nor does it have a root owned daemon process managing the container namespaces. It also exec’s the process work-flow inside the container and seamlessly redirects all IO in and out of the container directly between the environments. This makes doing things like MPI, X11 forwarding, and other kinds of work tasks trivial for Singularity.\newline
+On the other hand, Singularity does not support user escalation or context changes, nor does it have a root owned daemon process managing the container namespaces. It also exec’s the process work-flow inside the container and seamlessly redirects all I/O in and out of the container directly between the environments. This makes doing things like MPI, X11 forwarding, and other kinds of work tasks trivial for Singularity.\newline
 
 When executing container commands, the Singularity process flow can be generalized as follows:
 \begin{enumerate}
@@ -286,9 +288,9 @@ Singularity makes use of a hybrid MPI container approach, this means that MPI mu
     \item All non-shared memory communication occurs through the PMI and then to local interfaces (e.g. InfiniBand)
 \end{enumerate}
 
-This entire process happens behind the scenes, and from the user's perspective running via MPI is as simple as just calling mpirun on the host as they would normally, but there are some important considerations to integrate Singularity and Open MPI in a HPC environment:
+This entire process happens behind the scenes, and from the user's perspective running via MPI is as simple as just calling mpirun on the host as they would normally, but there are some important considerations to integrate Singularity and Open MPI in an HPC environment:
 \begin{itemize}
-\item OpenMPI must be newer of equal to the version inside the container.
+\item Open MPI must be newer of equal to the version inside the container.
 \item To support InfiniBand, the container must support it.
 \item To support PMI, the container must support it.
 \item Very little (if any) performance penalty has been observed.
@@ -368,19 +370,19 @@ Remember that Singularity does not magically allow containers to connect to netw
 
 For a clearer and more concise language, from now on, whenever we refer to containers with Open MPI inside, we will do it with the following nomenclature: container ompi/Open MPI version. E.g. if we are talking about a \textit{Ubuntu 16.04.2 LTS (Ubuntu Xenial)} container with Open MPI version 1.10.2, we will just call it: container ompi/1.10.2. In case of Intel MPI, the nomenclature will be changed to container impi/Intel MPI version (e.g. container impi/2017).
 
-That from the container side. Changing to the outside values, we already know that the cluster is a \textit{Red Hat Enterprise Linux Server release 6.7}, which have different Open MPI and Intel MPI versions installed. So, every time we want to talk about an external configuration that make use of a concrete version of Open MPI or Intel MPI we will call it external ompi/version or external impi/version.
+That from the container side. Changing to the outside values, we already know that the cluster is a \textit{Red Hat Enterprise Linux Server release 6.7}, which have different Open MPI and Intel MPI versions installed. So, every time we want to talk about an external configuration that make use of a concrete version of Open MPI or Intel MPI we will call it host ompi/version or host impi/version.
 
 Then, different approaches will be made in order to arrive at a solution that allows the use of different versions of MPI libraries inside and outside the container. We will focus our attention on the ompi configurations, as it is a more standardized configuration, but some tests with impi configurations will be done too.
 
 Understanding a little more the number of test needed for every approach we can see the table below.
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
-\caption{My caption}
+\caption{Approximation to needed tests}
 \label{my-label}
 \begin{tabular}{|r|c|c|c|c|c|}
 \hline
-\multicolumn{1}{|c|}{Container ompi/} & \multicolumn{5}{c|}{External ompi/} \\ \hline
+\multicolumn{1}{|c|}{Container ompi/} & \multicolumn{5}{c|}{host ompi/} \\ \hline
 \multicolumn{1}{|c|}{} & 1.10.2 & 2.0.0 & 2.0.1 & 2.0.2 & 2.1.1 \\ \hline
 1.10.2 &  &  &  &  &  \\ \hline
 2.0.0 &  &  &  &  &  \\ \hline
@@ -390,16 +392,16 @@ Understanding a little more the number of test needed for every approach we can 
 \end{tabular}
 \end{table}
 
-As we deal with five different versions of Open MPI, their mixtures will give rise to 25 tests. But in addition, we must execute the same under different compilers, since they can be a determinant variable, and its implication will not be clear until the tests are realized. Not all external ompi configurations have the same compilers available, but they almost always have at least two different compilers. Also, we must repeat these test at least twice, one execution in just one node, and the other one in multiple nodes. This means that each approach will take approximately 100 executions. It is important to automate the process as much as possible because it is a tedious and repetitive task.
+As we deal with five different versions of Open MPI, their mixtures will give rise to 25 tests. But in addition, we must execute the same under different compilers, since they can be a determinant variable, and its implication will not be clear until the tests are realized. Not all host ompi configurations have the same compilers available, but they almost always have at least two different compilers. Also, we must repeat these test at least twice, one execution in just one node, and the other one in multiple nodes. This means that each approach will take approximately 100 executions. It is important to automate the process as much as possible because it is a tedious and repetitive task.
 
-Finally, it is important to specify that on the Finis Terrae II we can use different process managers. One of them is the \textit{srun} tool, which is part of the \textit{Slurm}\cite{slurm} resources manager, already installed on the Finis Terrae II. \textit{Srun} is a tool employed to manage the resources and the processes. Besides, OpenMPI provide \textit{mpirun} as process manager, which offers similar functionalities than \textit{srun}, but they are more restricted.
+Finally, it is important to specify that on the Finis Terrae II we can use different process managers. One of them is the \textit{srun} tool, which is part of the \textit{Slurm}\cite{slurm} resources manager, already installed on the Finis Terrae II. \textit{Srun} is a tool employed to manage the resources and the processes. Besides, Open MPI provide \textit{mpirun} as process manager, which offers similar functionalities than \textit{srun}, but they are more restricted.
 
 \section{Approaches of the problem and development}
 \label{sec:approach}
 \subsection{Tests}
 The selected application for the ompi tests was \verb|"ring"|\cite{ring}· It is one of the most basics applications, what ensures a basic distributed communication employing MPI.
 
-It works as follow: The ring program initializes a value from process zero, and the value is passed around every single process. The program terminates when process zero receives the value from the last process. First process makes sure that it has completed its first send before it tries to receive the value from the last process. All of the other processes simply call \verb|MPI_Recv| (receiving from their neighboring lower process) and then \verb|MPI_Send| (sending the value to their neighboring higher process) to pass the value along the ring. \verb|MPI_Send| and \verb|MPI_Recv| will block until the message has been transmitted. Because of this, the \verb|printfs| should occur by the order in which the value is passed.  \newline
+It works as follow: The ring program initializes a value from process zero, and the value is passed around every single process. The program terminates when process zero receives the value from the last process. First process makes sure that it has completed its first send before it tries to receive the value from the last process. All of the other processes simply call \verb|MPI_Recv| (receiving from their neighboring lower process) and then \verb|MPI_Send| (sending the value to their neighboring higher process) to pass the value along the ring. \verb|MPI_Send| and \verb|MPI_Recv| will block until the message has been transmitted. Because of this, the \verb|printfs| should occur by the order in which the value is passed. 
 
 For the impi tests, Intel MPI Library\cite{impi} comes with a set of source files for simple MPI programs that enable to test the installation. Test program sources are available for all supported programming languages and are located at \verb|<installdir>/test|, where \verb|<installdir>| is \verb|/opt/intel/compilers_and_libraries_<version>.x.xxx/linux/mpi| by default. The installation directory for the impi containers was the default one, replacing version for 2017.4.196. The source files available into this directory are:
 
@@ -427,7 +429,7 @@ The first test done was the mix of the different ompi possibilities, including t
 \label{test1}
 \begin{tabular}{|r|c|c|c|c|c|}
 \hline
-\multicolumn{1}{|c|}{Container ompi/} & \multicolumn{5}{c|}{External ompi/} \\ \hline
+\multicolumn{1}{|c|}{Container ompi/} & \multicolumn{5}{c|}{host ompi/} \\ \hline
 \multicolumn{1}{|c|}{} & 1.10.2 & 2.0.0 & 2.0.1 & 2.0.2 & 2.1.1 \\ \hline
 1.10.2 & \color[HTML]{006600}{\cmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} \\ \hline
 2.0.0 & \textcolor{red}{\xmark} & \color[HTML]{006600}{\cmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} \\ \hline
@@ -445,7 +447,7 @@ The same configuration was employed to prove the impi possible configurations. I
 \label{test2}
 \begin{tabular}{|r|c|c|}
 \hline
-\multicolumn{1}{|c|}{Container impi/} & \multicolumn{2}{c|}{External impi/} \\ \hline
+\multicolumn{1}{|c|}{Container impi/} & \multicolumn{2}{c|}{host impi/} \\ \hline
  & 5.1 & 2017 \\ \hline
 5.1 & \color[HTML]{006600}{\cmark} & \textcolor{red}{\xmark} \\ \hline
 2017 & \textcolor{red}{\xmark} & \color[HTML]{006600}{\cmark} \\ \hline
@@ -467,7 +469,7 @@ As could be expected, results were not the same. The big difference is that unde
 \label{test3}
 \begin{tabular}{|r|c|c|c|c|c|}
 \hline
-\multicolumn{1}{|c|}{Container ompi/} & \multicolumn{5}{c|}{External ompi/} \\ \hline
+\multicolumn{1}{|c|}{Container ompi/} & \multicolumn{5}{c|}{host ompi/} \\ \hline
 \multicolumn{1}{|c|}{} & 1.10.2 & 2.0.0 & 2.0.1 & 2.0.2 & 2.1.1 \\ \hline
 1.10.2 & \color[HTML]{006600}{\cmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} \\ \hline
 2.0.0 & \textcolor{red}{\xmark} & \color[HTML]{006600}{\cmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} \\ \hline
@@ -484,7 +486,7 @@ The results for multiple nodes can be observed on table \ref{test4}. When this t
 \label{test4}
 \begin{tabular}{|r|c|c|c|c|c|}
 \hline
-\multicolumn{1}{|c|}{Container ompi/} & \multicolumn{5}{c|}{External ompi/} \\ \hline
+\multicolumn{1}{|c|}{Container ompi/} & \multicolumn{5}{c|}{host ompi/} \\ \hline
 \multicolumn{1}{|c|}{} & 1.10.2 & 2.0.0 & 2.0.1 & 2.0.2 & 2.1.1 \\ \hline
 1.10.2 & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} \\ \hline
 2.0.0 & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} & \textcolor{red}{\xmark} \\ \hline
@@ -518,7 +520,7 @@ Browsing the Singularity web we can found suggestion of how the binding should b
 \paragraph{SRUN}
 \subparagraph{}
 
-This approach was made under the \textit{srun} process manager. A exhaustive study has been done to detect all the Open MPI dependencies, all of them located at \verb|/lib64/| and \verb|/usr/lib64/| at the \textit{Finis Terrae II}. So, once dependencies were obtained, we observed them carefully. Then, making use of the Singularity binding option, we bind the needed host librariesº, forcing the containers to use these selected libraries instead of their owns. It is quite important to note that simple binding and replacing the entire directories inside the container is not the right solution as it supposes a replacement of the whole low-level library and kernel modules. We need to create an extra level of indirection with symbolic links to get control on which libraries will be replaced inside the container.
+This approach was made under the \textit{srun} process manager. A exhaustive study has been done to detect all the Open MPI dependencies, all of them located at \verb|/lib64/| and \verb|/usr/lib64/| at the \textit{Finis Terrae II}. So, once dependencies were obtained, we observed them carefully. Then, making use of the Singularity binding option, we bind the needed host libraries, forcing the containers to use these selected libraries instead of their owns. It is quite important to note that simple binding and replacing the entire directories inside the container is not the right solution as it supposes a replacement of the whole low-level library and kernel modules. We need to create an extra level of indirection with symbolic links to get control on which libraries will be replaced inside the container.
 
 An extra preparation is needed in this approach. We need to create the folders where the bindings will be done, because Singularity will not automatic create them. The binding folders preparation starts with the creation of a folder hierarchy where there are included the folders where the bindings will be done as well as folders which will contain exactly the same content as the host important libraries.
 
@@ -632,7 +634,7 @@ It is necessary to repeat these steps until no more dependencies are shown. When
 \label{my-label}
 \begin{tabular}{|r|c|c|c|c|c|}
 \hline
-\multicolumn{1}{|c|}{Container ompi/} & \multicolumn{5}{c|}{External ompi/} \\ \hline
+\multicolumn{1}{|c|}{Container ompi/} & \multicolumn{5}{c|}{host ompi/} \\ \hline
 \multicolumn{1}{|c|}{} & 1.10.2 & 2.0.0 & 2.0.1 & 2.0.2 & 2.1.1 \\ \hline
 1.10.2 & \color[HTML]{006600}{\cmark}  & \color{green}{\danger} & \color{green}{\danger} & \color{green}{\danger} & \color{green}{\danger} \\ \hline
 2.0.0 & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} \\ \hline
@@ -641,7 +643,7 @@ It is necessary to repeat these steps until no more dependencies are shown. When
 2.1.1 & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} \\ \hline
 \end{tabular}
 \end{table}
-As can be seen at the table above, once all the involved libraries and its dependencies were satisfied, the test program, ring, could be executed under any container-FT2 OpenMPI mix. However, if container ompi/1.10.2 is used with a higher OpenMPI version outside, it will show a warning prompt, making reference to  different sizes in symbols (e.g. Symbol 'ompi\_mpi\_comm\_world' has different size in shared object, consider re-linking). Due to this, future real world applications could not work properly or crash.
+As can be seen at the table above, once all the involved libraries and its dependencies were satisfied, the test program, ring, could be executed under any container-FT2 Open MPI mix. However, if container ompi/1.10.2 is used with a higher Open MPI version outside, it will show a warning prompt, making reference to  different sizes in symbols (e.g. Symbol 'ompi\_mpi\_comm\_world' has different size in shared object, consider re-linking). Due to this, future real world applications could not work properly or crash.
 
 In addition, we must keep in mind that other applications can make use of some libraries that the test program has not done. In that case, we should repeat all the above steps to cover all dependencies again.
 
@@ -650,7 +652,7 @@ Leaving aside these small possible incidents, it seems that we have come up with
 All the scripts employed to achieve this final solution, as well as the filtered libraries hierarchy can be consulted on section \ref{annexes}. 
 
 \section{Real world applications}
-Once the test applications passed; real world applications, built inside already created containers, were proved. For this reason, the OpenMPI version contained could not be changed. As we achieved a solution what seems work properly, we will make use of it for these executions. That is, we will check if our solution is suitable for big and complex problems. As these containerized programs belong to real world solutions, their proper execution should suppose a quality assurement for our achieved approach. We will test programs written in the following programing languages: \textit{C++}, \textit{Fortran} and \textit{Python}. All them were executed under two distributed nodes.
+Once the test applications passed; real world applications, built inside already created containers, were proved. For this reason, the Open MPI version contained could not be changed. As we achieved a solution what seems work properly, we will make use of it for these executions. That is, we will check if our solution is suitable for big and complex problems. As these containerized programs belong to real world solutions, their proper execution should suppose a quality assurement for our achieved approach. We will test programs written in the following programing languages: \textit{C++}, \textit{Fortran} and \textit{Python}. All them were executed under two distributed nodes.
 
 \subsection{C++ application: Feel++}
 \begin{table}[H]
@@ -659,12 +661,12 @@ Once the test applications passed; real world applications, built inside already
 \label{Feel++}
 \begin{tabular}{|r|c|c|c|c|c|}
 \hline
-\multicolumn{1}{|c|}{Container ompi/} & \multicolumn{5}{c|}{External ompi/} \\ \hline
+\multicolumn{1}{|c|}{Container ompi/} & \multicolumn{5}{c|}{host ompi/} \\ \hline
 \multicolumn{1}{|c|}{} & 1.10.2 & 2.0.0 & 2.0.1 & 2.0.2 & 2.1.1 \\ \hline
 1.10.2 & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \textcolor{red}{\xmark} \\ \hline
 \end{tabular}
 \end{table}
-As can be seen in this test, a container ompi/1.10.2 worked over 1.10.2, 2.0.0, 2.0.1 and 2.0.2 outside OpenMPI versions. Nevertheless, external ompi/2.1.1 did not work. Most robably this is because the latest version employs an Intel compiler, and not a GNU compiler as the other ones. So, for the very first time, \textbf{a compiler dependency was discovered}.
+As can be seen in this test, a container ompi/1.10.2 worked over 1.10.2, 2.0.0, 2.0.1 and 2.0.2 outside Open MPI versions. Nevertheless, host ompi/2.1.1 did not work. Most robably this is because the latest version employs an Intel compiler, and not a GNU compiler as the other ones. So, for the very first time, \textbf{a compiler dependency was discovered}.
 
 \subsection{Fortran application: XH5For}
 \begin{table}[H]
@@ -673,14 +675,14 @@ As can be seen in this test, a container ompi/1.10.2 worked over 1.10.2, 2.0.0, 
 \label{XH5For}
 \begin{tabular}{|r|c|c|c|c|c|}
 \hline
-\multicolumn{1}{|c|}{Container ompi/} & \multicolumn{5}{c|}{External ompi/} \\ \hline
+\multicolumn{1}{|c|}{Container ompi/} & \multicolumn{5}{c|}{host ompi/} \\ \hline
 \multicolumn{1}{|c|}{} & 1.10.2 & 2.0.0 & 2.0.1 & 2.0.2 & 2.1.1 \\ \hline
 1.10.2 & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \textcolor{red}{\xmark} \\ \hline
 2.1.1 & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \textcolor{red}{\xmark} \\ \hline
 \end{tabular}
 \end{table}
 
-Confirming the previous named dependency, the Fortran application worked over all external ompi except ompi/2.1.1, which makes use of an Intel compiler. This bahavior is observed for different container ompi versions, even when there is a one-to-one match, because the containerized application was compiled with a GNU compiler.
+Confirming the previous named dependency, the Fortran application worked over all host ompi except ompi/2.1.1, which makes use of an Intel compiler. This bahavior is observed for different container ompi versions, even when there is a one-to-one match, because the containerized application was compiled with a GNU compiler.
 
 \subsection{Python application: Distributed Smith-Waterman}
 
@@ -706,14 +708,14 @@ Finishing the real world applications tests, a Python application was executed. 
 \label{Smith-Waterman}
 \begin{tabular}{|r|c|c|c|c|c|}
 \hline
-\multicolumn{1}{|c|}{Container ompi/} & \multicolumn{5}{c|}{External ompi/} \\ \hline
+\multicolumn{1}{|c|}{Container ompi/} & \multicolumn{5}{c|}{host ompi/} \\ \hline
 \multicolumn{1}{|c|}{} & 1.10.2 & 2.0.0 & 2.0.1 & 2.0.2 & 2.1.1 \\ \hline
 1.10.2 & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} \\ \hline
 2.1.1 & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} & \color[HTML]{006600}{\cmark} \\ \hline
 \end{tabular}
 \end{table}
 
-Unlike the other actual tested applications, in this case the operation was correct under all external ompi combinations. It is also true that the implementation of this application is simpler compared to the previously presented, but we must keep in mind that Python is usually used for the creation of simple programs on HPC.
+Unlike the other actual tested applications, in this case the operation was correct under all host ompi combinations. It is also true that the implementation of this application is simpler compared to the previously presented, but we must keep in mind that Python is usually used for the creation of simple programs on HPC.
 
 \section{Benchmarks}
 
@@ -726,7 +728,7 @@ Nevertheless, until this lightness is verified in our work environment, we will 
 
 So, the objective of the following benchmark tests is no other than proof that containers make a propper use of HPC resources like memory, networking or computing.
 \subsection{InfiniBand network benchmarks: OSU microbenchmarks}
-Since the goal of this document is the description of how to use Singularity containers employing different versions of MPI, one of the most interesting benchmarks that can be done is the use of the network. We are not talking about a network that connects with the outside, but an internode network that allows the communication of the different processors for a correct distribution operation. For this purpose, FinisTerrae II, as well as many others clusters, uses an InfiniBand network. InfiniBand is a computer-networking communications standard used in high-performance computing that features very high throughput and very low latency. It is used for data interconnect both among and within computers.
+Since the goal of this document is the description of how to use Singularity containers employing different versions of MPI, one of the most interesting benchmarks that can be done is the use of the network. We are not talking about a network that connects with the outside, but an internode network that allows the communication of the different processors for a correct distribution operation. For this purpose, Finis Terrae II, as well as many others clusters, uses an InfiniBand network. InfiniBand is a computer-networking communications standard used in high-performance computing that features very high throughput and very low latency. It is used for data interconnect both among and within computers.
 
 
 So, now the Singularity containers are using MPI, we will check if they are making use of the InfiniBand network for that. 
@@ -804,7 +806,7 @@ Having understood the purpose of the tests to be performed, we proceed to explai
 
 To ensure the use of the InfiniBand network, the obtained values will be compared with some scientific papers that tell how they used the same tests to measure their own InfiniBand network. These texts belong to research centers or similar, so they will be considered completely reliable sources. Some of them compare the InfiniBand network values versus the Ethernet network values obtained under the same tests. So, if the results obtained under the Finis Terrae II hover around similar values, the InfiniBand network use will be assured.
 
-Once the different benchmarks were executed, it is easily observable that the obtained results under the same Open MPI version out of the container are very stable for the five Open MPI version combinations within the container. However, this does not happen when we talk about total Open MPI combinations outside the containers (although in some cases it remains completely stable). Observed this behavior, what has been done is to perform the average of the values belonging to the same version of Open MPI outside the container, to perform a comparison between the three versions of Open MPI outside the container.
+Once the different benchmarks were executed, it is easily observable that the obtained results under the same Open MPI version out of the container are very stable for the five Open MPI version combinations within the container. What has been done is to perform the average of the values belonging to the same version of Open MPI outside the container, to perform a comparison between the three versions of Open MPI outside the container.
 
 
 \subsubsection{Latency Tests}
@@ -891,7 +893,7 @@ The other limitation factor, the "timing calibration" output by the program, can
 Continuing with the values under the benchmark will be done, it is important to consider that STREAM runs each kernel \verb|NTIMES| times and reports the best result for any iteration after the first. The selected value for this variable will be the default one: 10 times. 
 
 
-Finally, keep in mind that we must compile the code with optimization and enabling the correct options to be able to use multiprocessing; employing OpenMPI mpicc in our case. Array size can be set at compile time without modifying the source code for the (many) compilers that support preprocessor definitions on the compile line.
+Finally, keep in mind that we must compile the code with optimization and enabling the correct options to be able to use multiprocessing; employing Open MPI mpicc in our case. Array size can be set at compile time without modifying the source code for the (many) compilers that support preprocessor definitions on the compile line.
 \begin{lstlisting}[language=bash,caption={Compilation example employing Singularity containers}]
 sudo singularity exec -w CONTAINER_NAME.img mpicc -m64 -o /usr/bin/stream_mpi -O -DSTREAM_ARRAY_SIZE=760000000 stream_mpi.c
 \end{lstlisting}
@@ -971,7 +973,7 @@ the correct performance mixing different MPI versions inside-outside containers 
 What will be done is to reproduce a series of executions that were already made in the cluster, under an one-to-one inside-outside MPI versions. Thus, once all the results are obtained, both behaviors will be compared, and it will be reasoned if the solution with mixing MPI versions containers supposes, if it exists, a reasonable delay.
 
 
-In order to get a battery of results a little varied, what will be done is to execute these benchmarks with an upward focus. By this I mean that I will reproduce its execution making use of a greater number of processors each time. Computations will be run in 1, 2, 4, 8, 16 and 32 nodes at FinisTerrae II. For every node increment, the problem's size will increase too, in order to take always approximately 80-90\% of available memory of the involved nodes. This is what is called a scalability test weak. \newline
+In order to get a battery of results a little varied, what will be done is to execute these benchmarks with an upward focus. By this I mean that I will reproduce its execution making use of a greater number of processors each time. Computations will be run in 1, 2, 4, 8, 16 and 32 nodes at Finis Terrae II. For every node increment, the problem's size will increase too, in order to take always approximately 80-90\% of available memory of the involved nodes. This is what is called a scalability test weak. \newline
 
 The results of the one-to-one inside-outside MPI versions weak scaling tests show an increase of the aggregated performance as we increase the number of nodes involved. Looking at the results we can also see that the performance per node is maintained almost immutable along the different executions. These results are also very close to the expected theoretical values.
 
@@ -1012,15 +1014,15 @@ Comparing those results with the inside-outside mixed MPI execution, it is clear
 Therefore, despite the fact that the execution with inside-outside mixed MPI has presented a small delay, this is not of a great magnitude. In addition, this delay may occur only as a consequence of some uncontrolled noise. Therefore, we can say that the \textbf{execution with inside-outside mixed MPI is a good solution in terms of computational time, although it may not be the best.}
 
 \section{Discussion}
-Achieving the end of this document, we have obtained some interesting results, so it is important to remember and summarize them.\newline
+Achieving the end of this document, we have obtained some interesting results, so it is important to remember and summarize them.
 
-The main goal of this study was to obtain a possible environment solution which allow to evolve and improve sophisticated HPC scientific software with all its dependencies at a faster pace than using traditional software integration and deployment. \newline
+The main goal of this study was to obtain a possible environment solution which allow to evolve and improve sophisticated HPC scientific software with all its dependencies at a faster pace than using traditional software integration and deployment. 
 
-Traditional software integration and deployment performed in HPC systems is a time-consuming activity which relies on manual installations performed by system administrators and presents some issues which make it very inflexible. Nowadays, continuous integration, agile development methodologies and rolling releases are concepts being used in modern scientific software development. Having a HPC software up-to-date in this scenario and with traditional integration and deployment becomes a huge bottleneck.  Therefore, the ultimate goal has been to reduce as far as possible these drawbacks of conventional deployment and to achieve a solution as flexible as possible.\newline
+Traditional software integration and deployment performed in HPC systems is a time-consuming activity which relies on manual installations performed by system administrators and presents some issues which make it very inflexible. Nowadays, continuous integration, agile development methodologies and rolling releases are concepts being used in modern scientific software development. Having an HPC software up-to-date in this scenario and with traditional integration and deployment becomes a huge bottleneck.  Therefore, the ultimate goal has been to reduce as far as possible these drawbacks of conventional deployment and to achieve a solution as flexible as possible.
 
-After observing the possible realizable solutions, it was concluded that the one that best adapted for this concrete case consisted of a containers-based system.\newline
+After observing the possible realizable solutions, it was concluded that the one that best adapts for this concrete case consists on a containers-based system. The main issue of the selected containerization technology, Singularity, relies on its integration with Open MPI. Most of the work in this document is an effort to find a generic way to deploy whatever MPI parallel application within a container on Finis Terrae II.
 
-Different approaches were proposed, since the expected response was not initially obtained. Once a possible solution was reached, efforts were made to obtain the maximum possible stability of the same, carrying out numerous tests, as well as executions of real and complex applications. After multiple test-error executions, we identified those parameters that influenced the correct functioning of the environment, such as libraries involved in MPI communication or the use of different compilers. Once these parameters were identified, the environment deployment was fully automated through scripts to obtain stable environments under which it is possible to execute the desired applications.\newline
+In order to achieve the goal, different approaches were proposed, since the expected response was not initially obtained. Once a possible solution was reached, efforts were made to obtain the maximum possible stability of the same, carrying out numerous tests, as well as executions of real and complex applications. After multiple test-error executions, we identified those parameters that influenced the correct functioning of the environment, such as libraries involved in MPI communication or the use of different compilers. Once these parameters were identified, the environment deployment was fully automated through scripts to obtain stable environments under which it is possible to execute the desired applications.
 
 In spite of having made many advances with the "Binding libraries and their dependencies" approach, it should be remembered that this is not the only approach that we have detected throughout this study. Any of these approaches can be applicable as long as the objective are achieved. We will review the different characteristics of each of these approaches, analyzing their pros and cons.
 
@@ -1068,9 +1070,9 @@ Finally, once this environment was obtained, it was tested. For this purpose, cr
 \subsection{PMIx approach}
 Another possible solution to the Open MPI interoperability, and therefore to the portability of distributed applications with Singularity, has been identified. Under this approach, we will make use of PMIx as process manager at the host and within the container.
 
-The solution is promising, but at the time of this study the technologies are not mature enough. The right functioning of these technologies, for out goals will be ready with Open MPI v.3 and PMIx v.2.1. These versions are not already released.
+The solution is promising, but at the time of this study the technologies are not mature enough. The expected right functioning of these technologies, for our goals, will be ready with Open MPI v.3 and PMIx v.2.1. These versions are not already released.
 
-In addition, PMIx is also not supported by \textit{SLURM}, the resource manager and process manager recommended in the Finis Terrae II.
+In addition, PMIx is also not supported by \textit{SLURM} version, the resource manager and process manager, currently available and recommended in the Finis Terrae II.
 \newpage
 \section{Annexes}
 \label{annexes}
@@ -1107,9 +1109,9 @@ IncludeCmd: yes
 	apt-get install -y dkms infiniband-diags libibverbs* ibacm librdmacm* libmlx4* libmlx5* mstflint libibcm.* libibmad.* libibumad* opensm srptools libmlx4-dev librdmacm-dev rdmacm-utils ibverbs-utils perftest vlan ibutils
 	apt-get install -y libtool autoconf automake build-essential ibutils ibverbs-utils rdmacm-utils infiniband-diags perftest librdmacm-dev libibverbs-dev libmlx4-1 numactl libnuma-dev autoconf automake gcc g++ git libtool pkg-config
 	apt-get install -y libnl-3-200 libnl-route-3-200 libnl-route-3-dev libnl-utils
-	# OpenMPI dependencies
+	# Open MPI dependencies
 	apt-get install -y libopenmpi-dev openmpi-common openmpi-bin openmpi-doc dapl2-utils libdapl-dev libdapl2 libibverbs1 libibverbs-dev librdmacm1 libcxgb3-1 libipathverbs1 libmlx4-1 libmlx5-1 libmthca1 libnes1 libpmi0 libpmi0-dev libslurm29 libslurm-dev libsysfs2 libsysfs-dev
-	# Install OpenMPI
+	# Install Open MPI
 	cd /tmp/
 	# IMPORTANT!: Change the Open MPI version to the desired one
 	wget https://www.open-mpi.org/software/ompi/v1.10/downloads/openmpi-1.10.2.tar.gz -O openmpi-1.10.2.tar.gz
@@ -1271,7 +1273,7 @@ if srun singularity exec \
 -B /usr/lib64:/host/usr/lib64 \
 -B $HOST_LIBS/lib64:/host/filtered/lib64 \
 -B $HOST_LIBS/usr/lib64:/host/filtered/usr/lib64 \
--B /opt/cesga/easybuild/software/OpenMPI/$OPEN_MPI_VERSION-$COMPILER_EASYBUILD-$COMPILER_VERSION_EASYBUILD/lib:/.singularity.d/libs \
+-B /opt/cesga/easybuild/software/Open MPI/$OPEN_MPI_VERSION-$COMPILER_EASYBUILD-$COMPILER_VERSION_EASYBUILD/lib:/.singularity.d/libs \
 -B $HOST_LIBS/mpi:/host/mpi \
 -B /opt/cesga:/opt/cesga \
 -B /usr/lib64/slurm:/usr/lib64/slurm \
@@ -1283,6 +1285,9 @@ ubuntu."$CONTAINER_OPEN_MPI_VERSION".img bash -c "export LD_LIBRARY_PATH=$LIBS_P
 \end{lstlisting}
 
 \subsection{Host binded and filtered libraries}
+
+At this final subsection, we can observe the final filtered list of all the libraries needed to be binded inside the container from the host.
+
 \begin{lstlisting}[language=bash,caption={Host filtered libraries}]
 /host/filtered/
 |-- lib64
@@ -1417,7 +1422,7 @@ Recovered from: \url{<https://software.intel.com/en-us/intel-mpi-library>}
 Recovered from: \url{<https://slurm.schedmd.com/>}
 
 \bibitem{binding}
-  Using Host libraries: GPU drivers and OpenMPI BTLs [Internet] - Singularity [Quoted August 11, 2017]. 
+  Using Host libraries: GPU drivers and Open MPI BTLs [Internet] - Singularity [Quoted August 11, 2017]. 
 Recovered from: \url{<http://singularity.lbl.gov/tutorial-gpu-drivers-open-mpi-mtls>}
 
 \bibitem{ABI-tracker}
@@ -1445,7 +1450,7 @@ Recovered from: \url{<http://mvapich.cse.ohio-state.edu/userguide/virt/#_osu_mic
 Recovered from: \url{<http://mvapich.cse.ohio-state.edu/static/media/mvapich/README-OMB.txt>}
 
 \bibitem{UL-HPC-MPI-tutorial}
-  HPC workflow with MPI Parallel/Distributed jobs (OSU Microbenchmarks, HPL) [Internet] - University of Luxembourg High Performance Computing (HPC) Team [Quoted August 03, 2017]. 
+  HPC work-flow with MPI Parallel/Distributed jobs (OSU Microbenchmarks, HPL) [Internet] - University of Luxembourg High Performance Computing (HPC) Team [Quoted August 03, 2017]. 
 Recovered from: \url{<https://ulhpc-tutorials.readthedocs.io/en/latest/advanced/OSU_MicroBenchmarks/>}
 
 \bibitem{EC2-vs-QDR-InfiniBand}
